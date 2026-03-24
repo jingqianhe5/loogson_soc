@@ -30,7 +30,7 @@ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --------------------------------------------------------------------------------
 ------------------------------------------------------------------------------*/
-
+`timescale 1ns/1ps
 `include "config.h"
 
 module axi_uart_controller
@@ -176,7 +176,7 @@ input               uart0_ri_i;
 output uart0_int;
 
 assign  dma_req_o      = 1'b0;
-assign  nand_dma_ack_i = dma_ack_i; 
+//assign  nand_dma_ack_i = dma_ack_i;  //wtf this signal?
 
 wire                    apb_ready_cpu;
 wire                    apb_rw_cpu;
@@ -311,7 +311,7 @@ apb_mux2 u_apb_mux2
 .apb0_addr          (apb_uart0_addr     ),
 .apb0_datai         (apb_uart0_datai    ),
 .apb0_datao         (apb_uart0_datao    ),
-                                        
+/* verilator lint_off PINCONNECTEMPTY */                                        
 .apb1_req           (                   ),
 .apb1_ack           (1'b1               ),
 .apb1_rw            (                   ),
@@ -320,12 +320,12 @@ apb_mux2 u_apb_mux2
 .apb1_addr          (                   ),
 .apb1_datai         (                   ),
 .apb1_datao         (32'b0              )
-                                        
+/* verilator lint_on PINCONNECTEMPTY */                                        
 );
 
 //uart0
 assign apb_uart0_ack = apb_uart0_enab;
-UART_TOP uart0
+uart_top uart0
 (
 .PCLK              (clk              ),
 .clk_carrier       (1'b0             ),

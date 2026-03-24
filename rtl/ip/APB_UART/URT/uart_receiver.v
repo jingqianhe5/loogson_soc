@@ -30,7 +30,7 @@ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --------------------------------------------------------------------------------
 ------------------------------------------------------------------------------*/
-
+/* verilator lint_off TIMESCALEMOD */
 `include "uart_defines.h"
 
 module uart_receiver (clk, wb_rst_i, lcr, rf_pop, srx_pad_i, enable, 
@@ -157,7 +157,7 @@ always @(posedge clk ) begin
                         end
                         else
                                 rstate       <= sr_rec_prepare;
-                                rcounter16   <= rcounter16_minus_1;
+                        rcounter16   <= rcounter16_minus_1;
                 end
                 sr_rec_bit    :	begin
                         if (rcounter16_eq_0) rstate <= sr_end_bit;

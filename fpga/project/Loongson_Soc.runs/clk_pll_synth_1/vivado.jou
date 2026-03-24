@@ -3,8 +3,8 @@
 # SW Build 6299465 on Fri Nov 14 12:34:56 MST 2025
 # IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
 # SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
-# Start of session at: Sun Mar 22 16:37:25 2026
-# Process ID         : 167435
+# Start of session at: Tue Mar 24 19:43:57 2026
+# Process ID         : 425494
 # Current directory  : /home/hjq/usr/loongson/la32r_soc_ciciec-2/fpga/project/Loongson_Soc.runs/clk_pll_synth_1
 # Command line       : vivado -log clk_pll.vds -product Vivado -mode batch -messageDb vivado.pb -notrace -source clk_pll.tcl
 # Log file           : /home/hjq/usr/loongson/la32r_soc_ciciec-2/fpga/project/Loongson_Soc.runs/clk_pll_synth_1/clk_pll.vds
@@ -13,12 +13,12 @@
 # Platform           : Ubuntu
 # Operating System   : Ubuntu 24.04.4 LTS
 # Processor Detail   : AMD Ryzen 7 8845H w/ Radeon 780M Graphics
-# CPU Frequency      : 3957.822 MHz
+# CPU Frequency      : 3705.582 MHz
 # CPU Physical cores : 8
 # CPU Logical cores  : 16
 # Host memory        : 16012 MB
 # Swap memory        : 8000 MB
 # Total Virtual      : 24012 MB
-# Available Virtual  : 16116 MB
+# Available Virtual  : 9454 MB
 #-----------------------------------------------------------
 source clk_pll.tcl -notrace

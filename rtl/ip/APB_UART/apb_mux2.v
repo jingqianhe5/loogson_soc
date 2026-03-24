@@ -30,11 +30,11 @@ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --------------------------------------------------------------------------------
 ------------------------------------------------------------------------------*/
-
+/* verilator lint_off DECLFILENAME */
 `define APB_DEV0  6'h00 
 
 `define APB_DEV1  6'h1e
-
+`timescale 1ns/1ps
 module apb_mux2 (
 clk,
 rst_n,

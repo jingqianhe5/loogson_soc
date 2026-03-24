@@ -2,7 +2,7 @@
 // Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
 // --------------------------------------------------------------------------------
 // Tool Version: Vivado v.2025.2 (lin64) Build 6299465 Fri Nov 14 12:34:56 MST 2025
-// Date        : Sun Mar 22 16:37:44 2026
+// Date        : Tue Mar 24 19:44:16 2026
 // Host        : hjq running 64-bit Ubuntu 24.04.4 LTS
 // Command     : write_verilog -force -mode synth_stub
 //               /home/hjq/usr/loongson/la32r_soc_ciciec-2/fpga/project/ipgen/clk_pll/clk_pll_stub.v

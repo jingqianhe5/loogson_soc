@@ -30,10 +30,10 @@ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --------------------------------------------------------------------------------
 ------------------------------------------------------------------------------*/
-
+`timescale 1ns/1ps
 `include "uart_defines.h"
 
-module UART_TOP(
+module uart_top(
         PCLK,        PRST_,
         PSEL,        PENABLE,     PADDR,       PWRITE,
         PWDATA,      URT_PRDATA,

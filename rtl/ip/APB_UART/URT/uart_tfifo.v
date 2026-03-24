@@ -32,7 +32,7 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ------------------------------------------------------------------------------*/
 
 `include "uart_defines.h"
-
+`timescale 1ns/1ps
 module uart_tfifo (clk, 
     wb_rst_i, data_in, data_out,
     push, 
@@ -83,13 +83,13 @@ begin
 	if (wb_rst_i)
 	begin
 		top		<= 0;
-		bottom		<= 1'b0;
+		bottom		<= 0;
 		count		<= 0;
 	end
 	else
 	if (fifo_reset) begin
 		top		<= 0;
-		bottom		<= 1'b0;
+		bottom		<= 0;
 		count		<= 0;
 	end
         else
