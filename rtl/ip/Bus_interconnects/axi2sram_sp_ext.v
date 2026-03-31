@@ -18,7 +18,7 @@
 //              Assertions should guide you if there is something unsupported happening.
 //
 module axi2sram_sp_ext #(
-    parameter AXI_ID_WIDTH      = 5,
+    parameter AXI_ID_WIDTH      = 6,
     parameter AXI_ADDR_WIDTH    = 32,
     parameter AXI_DATA_WIDTH    = 32
 )(
@@ -29,7 +29,7 @@ module axi2sram_sp_ext #(
     input     [1               :0] s_arburst,
     input     [3               :0] s_arcache,
     input     [AXI_ID_WIDTH-1  :0] s_arid   ,
-    input     [3               :0] s_arlen  ,
+    input     [7               :0] s_arlen  ,
     input     [1               :0] s_arlock ,
     input     [2               :0] s_arprot ,
     output reg                        s_arready,
@@ -38,8 +38,8 @@ module axi2sram_sp_ext #(
     input     [AXI_ADDR_WIDTH-1:0] s_awaddr ,
     input     [1               :0] s_awburst,
     input     [3               :0] s_awcache,
-    input     [AXI_ID_WIDTH    :0] s_awid   ,
-    input     [3               :0] s_awlen  ,
+    input     [AXI_ID_WIDTH-1  :0] s_awid   ,
+    input     [7               :0] s_awlen  ,
     input     [1               :0] s_awlock ,
     input     [2               :0] s_awprot ,
     output reg                        s_awready,
@@ -50,7 +50,7 @@ module axi2sram_sp_ext #(
     output reg   [1               :0] s_bresp  ,
     output reg                        s_bvalid ,
     output reg   [AXI_DATA_WIDTH-1:0] s_rdata  ,
-    output reg   [AXI_ID_WIDTH    :0] s_rid    ,
+    output reg   [AXI_ID_WIDTH-1  :0] s_rid    ,
     output reg                        s_rlast  ,
     input                          s_rready ,
     output reg   [1               :0] s_rresp  ,
@@ -377,4 +377,3 @@ module axi2sram_sp_ext #(
     // end
 
 endmodule
-

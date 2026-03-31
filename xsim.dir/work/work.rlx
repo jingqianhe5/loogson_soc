@@ -1,0 +1,9 @@
+0.7
+2020.2
+Nov 14 2025
+12:36:23
+/home/hjq/usr/loongson/la32r_soc_ciciec-2/rtl/config.h,1742468450,verilog,,,,,,,,,,,,
+/home/hjq/usr/loongson/la32r_soc_ciciec-2/rtl/ip/isp/Video2AXI.v,1774935288,verilog,,/home/hjq/usr/loongson/la32r_soc_ciciec-2/rtl/ip/isp/isp_top.v,,video_to_axis_bridge,,,,,,,,
+/home/hjq/usr/loongson/la32r_soc_ciciec-2/rtl/ip/isp/isp_top.v,1774935298,verilog,,,,isp_top,,,,,,,,
+/home/hjq/usr/loongson/la32r_soc_ciciec-2/rtl/ip/isp/sync_fifo.v,1760949222,verilog,,/home/hjq/usr/loongson/la32r_soc_ciciec-2/rtl/ip/isp/Video2AXI.v,,sync_fifo,,,,,,,,
+/home/hjq/usr/loongson/la32r_soc_ciciec-2/rtl/soc_top.v,1774935319,verilog,,,/home/hjq/usr/loongson/la32r_soc_ciciec-2/rtl/config.h,soc_top,,,,,,,,

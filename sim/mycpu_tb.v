@@ -170,7 +170,7 @@ begin
 end
 
 sram_sp #(
-    .AW        ( 18     ),
+    .AW        ( 21     ),
     .Init_File(`SRAM_Init_File))
 base_sram_sp (
     .ram_addr                ( base_ram_addr   ),
@@ -183,7 +183,7 @@ base_sram_sp (
 );
 
 sram_sp #(
-    .AW        ( 18     ),
+    .AW        ( 21     ),
     .Init_File(`SRAM_Init_File))
 ext_sram_sp (
     .ram_addr                ( ext_ram_addr   ),
@@ -194,6 +194,67 @@ ext_sram_sp (
 
     .ram_data                ( ext_ram_data   )
 );
+initial begin
+    // 必须等待一段时间！
+    // 因为 sram_sp 内部有 $readmemb(Init_File, BRAM) 会在 0 时刻加载启动代码。
+    // 我们等启动代码加载完、系统复位结束后，再把图像数据“强塞”进去。
+    #5000; 
+    
+    $display("-----------------------------------------");
+    $display("--- [TB] Start Loading Image to SRAM  ---");
+    
+    // 【地址映射核对】:
+    // 假设 C 代码里配置 DMA 读起始地址为 0x1C10_0000
+    // base_sram 基地址是 0x1C00_0000，偏移量是 0x10_0000 字节。
+    // Verilog 数组索引是 Word(32-bit) 地址，所以索引 = 0x100000 / 4 = 0x40000。
+    // 假设图像是 256x256 (65536 像素)，占 0x10000 个 Word。
+    // 结束索引 = 0x40000 + 0x10000 - 1 = 0x4FFFF。
+    
+    // 从 image_in.hex 读取数据，塞入 BRAM
+   $readmemh("/home/hjq/usr/loongson/la32r_soc_ciciec-2/sdk/software/examples/gray/image_in.hex", base_sram_sp.BRAM, 21'h80000, 21'h80FFF);
+    
+    $display("--- [TB] Image Loaded Successfully!   ---");
+    $display("-----------------------------------------");
+end
 
+// ===================================================================
+// [新增功能 2]：仿真后期 -> 导出处理后的图像数据
+// ===================================================================
+initial begin
+    // 给系统留出足够的处理时间！
+    // 256x256=65536个像素，假设 ISP 处理一个像素要 1 个时钟周期(10ns)，
+    // 加上 DMA 总线传输的开销，至少需要几毫秒的仿真时间。
+    // 这里等待 20 毫秒 (20,000,000 ns)，如果提前跑完了可以在 C 代码里加个打印。
+    #4000000; 
+    
+    $display("-----------------------------------------");
+    $display("--- [TB] Start Extracting Image       ---");
+    
+    // 【地址映射核对】:
+    // 假设 C 代码里配置 DMA 写回地址为 0x1C20_0000
+    // 偏移量 0x20_0000 字节 -> Word 索引 = 0x200000 / 4 = 0x80000。
+    // 结束索引 = 0x80000 + 0x10000 - 1 = 0x8FFFF。
+    
+    // XSIM 对这里的 $writememh 支持不稳定，手动逐行导出更可靠
+    begin : dump_image
+        integer fd;
+        integer idx;
+        fd = $fopen("/home/hjq/usr/loongson/la32r_soc_ciciec-2/sdk/software/examples/gray/image_out.hex", "w");
+        if (fd == 0) begin
+            $display("[%0t] ERROR: failed to open image_out.hex for write", $time);
+        end else begin
+            for (idx = 21'hC0000; idx <= 21'hC0FFF; idx = idx + 1) begin
+                $fdisplay(fd, "%08x", base_sram_sp.BRAM[idx]);
+            end
+            $fclose(fd);
+        end
+    end
+    
+    $display("--- [TB] Extraction Complete!         ---");
+    $display("-----------------------------------------");
+    
+    // 数据拿到了，主动结束仿真，防止干等
+    $finish; 
+end
 
 endmodule

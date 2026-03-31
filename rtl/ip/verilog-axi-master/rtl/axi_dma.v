@@ -78,7 +78,7 @@ module axi_dma #
     input  wire                       rst,
 
     /*
-     * AXI read descriptor input
+     * AXI read descriptor input 发布读任务
      */
     input  wire [AXI_ADDR_WIDTH-1:0]  s_axis_read_desc_addr,
     input  wire [LEN_WIDTH-1:0]       s_axis_read_desc_len,
@@ -86,18 +86,19 @@ module axi_dma #
     input  wire [AXIS_ID_WIDTH-1:0]   s_axis_read_desc_id,
     input  wire [AXIS_DEST_WIDTH-1:0] s_axis_read_desc_dest,
     input  wire [AXIS_USER_WIDTH-1:0] s_axis_read_desc_user,
+    //任务握手信号
     input  wire                       s_axis_read_desc_valid,
     output wire                       s_axis_read_desc_ready,
 
     /*
-     * AXI read descriptor status output
+     * AXI read descriptor status output 状态汇报端口
      */
     output wire [TAG_WIDTH-1:0]       m_axis_read_desc_status_tag,
     output wire [3:0]                 m_axis_read_desc_status_error,
     output wire                       m_axis_read_desc_status_valid,
 
     /*
-     * AXI stream read data output
+     * AXI stream read data output 读执行端口
      */
     output wire [AXIS_DATA_WIDTH-1:0] m_axis_read_data_tdata,
     output wire [AXIS_KEEP_WIDTH-1:0] m_axis_read_data_tkeep,
@@ -109,7 +110,7 @@ module axi_dma #
     output wire [AXIS_USER_WIDTH-1:0] m_axis_read_data_tuser,
 
     /*
-     * AXI write descriptor input
+     * AXI write descriptor input  发布写任务
      */
     input  wire [AXI_ADDR_WIDTH-1:0]  s_axis_write_desc_addr,
     input  wire [LEN_WIDTH-1:0]       s_axis_write_desc_len,
@@ -118,7 +119,7 @@ module axi_dma #
     output wire                       s_axis_write_desc_ready,
 
     /*
-     * AXI write descriptor status output
+     * AXI write descriptor status output 写状态汇报端口
      */
     output wire [LEN_WIDTH-1:0]       m_axis_write_desc_status_len,
     output wire [TAG_WIDTH-1:0]       m_axis_write_desc_status_tag,
@@ -129,7 +130,7 @@ module axi_dma #
     output wire                       m_axis_write_desc_status_valid,
 
     /*
-     * AXI stream write data input
+     * AXI stream write data input   写执行端口
      */
     input  wire [AXIS_DATA_WIDTH-1:0] s_axis_write_data_tdata,
     input  wire [AXIS_KEEP_WIDTH-1:0] s_axis_write_data_tkeep,
@@ -141,7 +142,7 @@ module axi_dma #
     input  wire [AXIS_USER_WIDTH-1:0] s_axis_write_data_tuser,
 
     /*
-     * AXI master interface
+     * AXI master interface   充当主机的作用
      */
     output wire [AXI_ID_WIDTH-1:0]    m_axi_awid,
     output wire [AXI_ADDR_WIDTH-1:0]  m_axi_awaddr,
@@ -182,9 +183,9 @@ module axi_dma #
     /*
      * Configuration
      */
-    input  wire                       read_enable,
-    input  wire                       write_enable,
-    input  wire                       write_abort
+    input  wire                       read_enable,   //1的时候 允许读操作
+    input  wire                       write_enable,  //1的时候 允许写操作
+    input  wire                       write_abort    //紧急停止
 );
 
 axi_dma_rd #(

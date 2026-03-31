@@ -1,0 +1,3 @@
+INFO: [VRFC 10-2263] Analyzing Verilog file "/home/hjq/usr/loongson/la32r_soc_ciciec-2/rtl/soc_top.v" into library work
+INFO: [VRFC 10-311] analyzing module soc_top
+WARNING: [VRFC 10-3380] identifier 'uart0_int' is used before its declaration [/home/hjq/usr/loongson/la32r_soc_ciciec-2/rtl/soc_top.v:199]

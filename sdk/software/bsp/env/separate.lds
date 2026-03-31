@@ -3,8 +3,8 @@ ENTRY(_start)
 
 MEMORY
 {
-  isram (rwxai) : ORIGIN = 0x1c000000, LENGTH = 512K
-  dsram (rwxai) : ORIGIN = 0x1c080000, LENGTH = 512K
+  isram (rwxai) : ORIGIN = 0x1c000000, LENGTH = 1024K
+  dsram (rwxai) : ORIGIN = 0x1c100000, LENGTH = 1024K
 }
 SECTIONS
 {

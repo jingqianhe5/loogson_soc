@@ -35,7 +35,7 @@ module axi_wrap_ram_sp_ext (
     input         aclk,
     input         aresetn,
     //ar
-    input  [4 :0] axi_arid   ,
+    input  [5 :0] axi_arid   ,
     input  [31:0] axi_araddr ,
     input  [7 :0] axi_arlen  ,
     input  [2 :0] axi_arsize ,
@@ -46,14 +46,14 @@ module axi_wrap_ram_sp_ext (
     input         axi_arvalid,
     output        axi_arready,
     //r
-    output [4 :0] axi_rid    ,
+    output [5 :0] axi_rid    ,
     output [31:0] axi_rdata  ,
     output [1 :0] axi_rresp  ,
     output        axi_rlast  ,
     output        axi_rvalid ,
     input         axi_rready ,
     //aw
-    input  [4 :0] axi_awid   ,
+    input  [5 :0] axi_awid   ,
     input  [31:0] axi_awaddr ,
     input  [7 :0] axi_awlen  ,
     input  [2 :0] axi_awsize ,
@@ -70,7 +70,7 @@ module axi_wrap_ram_sp_ext (
     input         axi_wvalid ,
     output        axi_wready ,
     //b
-    output [4 :0] axi_bid    ,
+    output [5 :0] axi_bid    ,
     output [1 :0] axi_bresp  ,
     output        axi_bvalid ,
     input         axi_bready ,
@@ -95,7 +95,7 @@ module axi_wrap_ram_sp_ext (
 
 //ram axi
 //ar
-wire [4 :0] ram_arid   ;
+wire [5 :0] ram_arid   ;
 wire [31:0] ram_araddr ;
 wire [7 :0] ram_arlen  ;
 wire [2 :0] ram_arsize ;
@@ -106,14 +106,14 @@ wire [2 :0] ram_arprot ;
 wire        ram_arvalid;
 wire        ram_arready;
 //r
-wire [4 :0] ram_rid    ;
+wire [5 :0] ram_rid    ;
 wire [31:0] ram_rdata  ;
 wire [1 :0] ram_rresp  ;
 wire        ram_rlast  ;
 wire        ram_rvalid ;
 wire        ram_rready ;
 //aw
-wire [4 :0] ram_awid   ;
+wire [5 :0] ram_awid   ;
 wire [31:0] ram_awaddr ;
 wire [7 :0] ram_awlen  ;
 wire [2 :0] ram_awsize ;
@@ -130,7 +130,7 @@ wire        ram_wlast  ;
 wire        ram_wvalid ;
 wire        ram_wready ;
 //b
-wire [4 :0] ram_bid    ;
+wire [5 :0] ram_bid    ;
 wire [1 :0] ram_bresp  ;
 wire        ram_bvalid ;
 wire        ram_bready ;
@@ -186,7 +186,7 @@ assign ram_bready = axi_bready ;
 
 
 axi2sram_sp_ext #(
-    .AXI_ID_WIDTH   ( 5  ),
+    .AXI_ID_WIDTH   ( 6  ),
     .AXI_ADDR_WIDTH ( 32 ),
     .AXI_DATA_WIDTH ( 32 ))
  u_axi_sram_sp (

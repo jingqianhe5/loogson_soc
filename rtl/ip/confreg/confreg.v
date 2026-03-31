@@ -47,7 +47,7 @@ module confreg #(
     input           cpu_clk,
     input           cpu_resetn,
 
-    input  [4 :0]   s_awid,
+    input  [5 :0]   s_awid,
     input  [31:0]   s_awaddr,
     input  [7 :0]   s_awlen,
     input  [2 :0]   s_awsize,
@@ -57,17 +57,17 @@ module confreg #(
     input  [2 :0]   s_awprot,
     input           s_awvalid,
     output          s_awready,
-    input  [4 :0]   s_wid,
+    input  [5 :0]   s_wid,
     input  [31:0]   s_wdata,
     input  [3 :0]   s_wstrb,
     input           s_wlast,
     input           s_wvalid,
     output          s_wready,
-    output [4 :0]   s_bid,
+    output [5 :0]   s_bid,
     output [1 :0]   s_bresp,
     output          s_bvalid,
     input           s_bready,
-    input  [4 :0]   s_arid,
+    input  [5 :0]   s_arid,
     input  [31:0]   s_araddr,
     input  [7 :0]   s_arlen,
     input  [2 :0]   s_arsize,
@@ -77,7 +77,7 @@ module confreg #(
     input  [2 :0]   s_arprot,
     input           s_arvalid,
     output          s_arready,
-    output [4 :0]   s_rid,
+    output [5 :0]   s_rid,
     output [31:0]   s_rdata,
     output [1 :0]   s_rresp,
     output          s_rlast,
@@ -125,7 +125,7 @@ always@(posedge aclk)
     else if(ar_enter|aw_enter) busy <= 1'b1;
     else if(r_retire|b_retire) busy <= 1'b0;
 
-reg [3 :0] buf_id;
+reg [5 :0] buf_id;
 reg [31:0] buf_addr;
 reg [7 :0] buf_len;
 reg [2 :0] buf_size;
