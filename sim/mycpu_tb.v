@@ -211,7 +211,7 @@ initial begin
     // 结束索引 = 0x40000 + 0x10000 - 1 = 0x4FFFF。
     
     // 从 image_in.hex 读取数据，塞入 BRAM
-   $readmemh("/home/hjq/usr/loongson/la32r_soc_ciciec-2/sdk/software/examples/gray/image_in.hex", base_sram_sp.BRAM, 21'h80000, 21'h80FFF);
+   $readmemh("/home/hjq/usr/loongson/la32r_soc_ciciec-2/sdk/software/examples/isp_test/image_in.hex", base_sram_sp.BRAM, 21'h80000, 21'h80FFF);
     
     $display("--- [TB] Image Loaded Successfully!   ---");
     $display("-----------------------------------------");
@@ -225,7 +225,7 @@ initial begin
     // 256x256=65536个像素，假设 ISP 处理一个像素要 1 个时钟周期(10ns)，
     // 加上 DMA 总线传输的开销，至少需要几毫秒的仿真时间。
     // 这里等待 20 毫秒 (20,000,000 ns)，如果提前跑完了可以在 C 代码里加个打印。
-    #4000000; 
+    #8000000; 
     
     $display("-----------------------------------------");
     $display("--- [TB] Start Extracting Image       ---");
@@ -239,7 +239,7 @@ initial begin
     begin : dump_image
         integer fd;
         integer idx;
-        fd = $fopen("/home/hjq/usr/loongson/la32r_soc_ciciec-2/sdk/software/examples/gray/image_out.hex", "w");
+        fd = $fopen("/home/hjq/usr/loongson/la32r_soc_ciciec-2/sdk/software/examples/isp_test/image_out.hex", "w");
         if (fd == 0) begin
             $display("[%0t] ERROR: failed to open image_out.hex for write", $time);
         end else begin

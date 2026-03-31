@@ -59,8 +59,8 @@ module video_to_axis_bridge #(
 
     assign gen_tdata  = {8'h00, data_r}; 
     assign gen_tvalid = de_r; 
-    // AXI2Video 已经把一个 descriptor 维持成一整行，这里应当看 HREF 的掉沿来产生 TLAST
-    assign gen_tlast  = de_r & href_r & (~post_img_href); 
+    // 当前 DMA 写描述符对应的是整帧，因此 TLAST 只能在整帧最后一个像素拉高一次。
+    assign gen_tlast  = de_r & href_r & vsync_r & (~post_img_href) & (~post_img_vsync);
     assign gen_tuser  = (post_img_href && !href_r && sof_armed) ? 1'b1 : 1'b0;
 
     // ==========================================

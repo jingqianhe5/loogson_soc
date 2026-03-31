@@ -2,10 +2,14 @@
 
 module AXI2Video #(
     // 你需要根据你的 DMA 参数设置这里的位宽
-    parameter AXIS_DATA_WIDTH = 32 
+    parameter AXIS_DATA_WIDTH = 32,
+    parameter IMG_WIDTH = 16'd64,
+    parameter IMG_HEIGHT = 16'd64
 )(
     input  wire        clk,
     input  wire        rst_n,
+
+
 
     // --- 输入：CPU 触发帧复位 (需要龙芯 CPU 通过寄存器产生一个脉冲) ---
     input  wire        cpu_frame_start_pulse, 
@@ -17,68 +21,126 @@ module AXI2Video #(
     output wire        s_axis_tready, // 反压信号，DMA只有等到ready为高才继续发
 
     // --- 输出：连接你 ISP 的输入 (per_img_*) ---
-    output wire        isp_vsync,
-    output wire        isp_href,
-    output wire        isp_de,
-    output wire [23:0] isp_data
+    output reg        isp_vsync,
+    output reg        isp_href,
+    output reg        isp_de,
+    output reg [23:0] isp_data
 );
 
-    // 寄存器打一拍，确保时序
-    reg [23:0] data_r;
-    reg        de_r;
-    reg        href_r;
-    reg        line_active_r;
-    reg        vsync_r;
+    localparam integer FRAME_PIXELS = IMG_WIDTH * IMG_HEIGHT;
+    localparam integer FIFO_DEPTH = FRAME_PIXELS;
 
-    // --- 场同步 (VSYNC) 生成逻辑 ---
-    // 为了让 vsync 脉冲具有一定宽度，我们可以让它在检测到 CPU 启动脉冲后拉高几个周期
-    reg [3:0] vsync_counter;
+    reg        frame_request_r;
+    reg        frame_buffer_ready_r;
+    reg        frame_active_r;
+    reg        line_gap_r;
+    reg [15:0] pixel_cnt_r;
+    reg [15:0] line_cnt_r;
+
+    wire [23:0] fifo_dout;
+    wire        fifo_full;
+    wire        fifo_empty;
+    wire [clogb2(FIFO_DEPTH-1):0] fifo_data_count;
+
+    wire fifo_wr_en = s_axis_tvalid & s_axis_tready;
+    wire fifo_rd_en;
+
+    assign s_axis_tready = ~fifo_full;
+
+    sync_fifo #(
+        .C_FIFO_WIDTH(24),
+        .C_FIFO_DEPTH(FIFO_DEPTH)
+    ) u_frame_fifo (
+        .rst       (~rst_n),
+        .clk       (clk),
+        .wr_en     (fifo_wr_en),
+        .din       (s_axis_tdata[23:0]),
+        .full      (fifo_full),
+        .rd_en     (fifo_rd_en),
+        .dout      (fifo_dout),
+        .empty     (fifo_empty),
+        .data_count(fifo_data_count)
+    );
+
+    wire axis_fire = frame_active_r & ~line_gap_r & ~fifo_empty;
+    wire last_pixel_in_line = (pixel_cnt_r == IMG_WIDTH - 1'b1);
+    wire last_line_in_frame = (line_cnt_r == IMG_HEIGHT - 1'b1);
+    assign fifo_rd_en = axis_fire;
+
     always @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            vsync_r <= 1'b0;
-            vsync_counter <= 4'd0;
+        if(~rst_n) begin
+            frame_request_r <= 1'b0;
+            frame_buffer_ready_r <= 1'b0;
+            frame_active_r  <= 1'b0;
+            line_gap_r      <= 1'b0;
+            pixel_cnt_r     <= 16'd0;
+            line_cnt_r      <= 16'd0;
+        end else if (cpu_frame_start_pulse) begin
+            frame_request_r <= 1'b1;
+            frame_buffer_ready_r <= 1'b0;
+            frame_active_r  <= 1'b0;
+            line_gap_r      <= 1'b0;
+            pixel_cnt_r     <= 16'd0;
+            line_cnt_r      <= 16'd0;
         end else begin
-            if (cpu_frame_start_pulse) begin
-                vsync_r <= 1'b1;
-                vsync_counter <= 4'd10; // 保持 10 个时钟周期高电平
-            end else if (vsync_counter > 4'd0) begin
-                vsync_counter <= vsync_counter - 4'd1;
-            end else begin
-                vsync_r <= 1'b0;
+            if (fifo_wr_en && s_axis_tlast) begin
+                frame_buffer_ready_r <= 1'b1;
+            end
+
+            if (!frame_active_r) begin
+                if (frame_request_r && frame_buffer_ready_r) begin
+                    frame_request_r <= 1'b0;
+                    frame_active_r  <= 1'b1;
+                    line_gap_r      <= 1'b0;
+                    pixel_cnt_r     <= 16'd0;
+                    line_cnt_r      <= 16'd0;
+                end
+            end else if (line_gap_r) begin
+                line_gap_r <= 1'b0;
+            end else if (axis_fire) begin
+                if (last_pixel_in_line) begin
+                    pixel_cnt_r <= 16'd0;
+
+                    if (last_line_in_frame) begin
+                        line_cnt_r           <= 16'd0;
+                        frame_active_r       <= 1'b0;
+                        frame_buffer_ready_r <= 1'b0;
+                    end else begin
+                        line_cnt_r  <= line_cnt_r + 1'b1;
+                        line_gap_r  <= 1'b1;
+                    end
+                end else begin
+                    pixel_cnt_r <= pixel_cnt_r + 1'b1;
+                end
             end
         end
     end
 
-    // --- 数据与数据有效性传递逻辑 ---
     always @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            data_r       <= 24'd0;
-            de_r         <= 1'b0;
-            href_r       <= 1'b0;
-            line_active_r<= 1'b0;
+        if(~rst_n) begin
+            isp_data  <= 24'd0;
+            isp_de    <= 1'b0;
+            isp_href  <= 1'b0;
+            isp_vsync <= 1'b0;
         end else begin
-            // 数据打一拍，从32位截取低24位
-            data_r <= s_axis_tdata[23:0]; 
-            // 如果 TREADY 为低，DMA 即使把 TVALID 拉高，数据也不应有效，这里加上保护
-            de_r   <= s_axis_tvalid & s_axis_tready; 
+            isp_vsync <= frame_active_r;
+            isp_href  <= axis_fire;
+            isp_de    <= axis_fire;
 
-            // 把一个 DMA descriptor 视作一整行。
-            // 即使 AXI-Stream 中间有空拍，也保持 HREF 为高，直到该 descriptor 的最后一拍到来。
-            if (s_axis_tvalid & s_axis_tready) begin
-                href_r <= 1'b1;
-                line_active_r <= ~s_axis_tlast;
+            if (axis_fire) begin
+                isp_data <= fifo_dout;
             end else begin
-                href_r <= line_active_r;
+                isp_data <= 24'd0;
             end
         end
     end
 
-    // --- 信号映射 ---
-    assign isp_data  = data_r;
-    assign isp_de    = de_r;
-    // 简易模式下，行有效 HREF 直接连 DE (意味着没有行间消隐 blanking)
-    assign isp_href  = href_r; 
-    assign isp_vsync = vsync_r;
-    assign s_axis_tready = 1'b1; 
+    function integer clogb2;
+        input integer depth;
+        begin
+            for (clogb2 = 0; depth > 0; clogb2 = clogb2 + 1)
+                depth = depth >> 1;
+        end
+    endfunction
 
 endmodule

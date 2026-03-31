@@ -1152,6 +1152,12 @@ wire [19:0] dma_write_cmd_len;
 wire        dma_write_cmd_valid;
 wire        dma_write_cmd_ready;
 wire        isp_cpu_frame_start_pulse;
+wire [8:0]  isp_cfg_selector;
+wire [7:0]  isp_cfg_brightness_thresh;
+wire [7:0]  isp_cfg_contrast_thresh;
+wire [7:0]  isp_cfg_awb_r_thresh;
+wire [7:0]  isp_cfg_awb_g_thresh;
+wire [7:0]  isp_cfg_awb_b_thresh;
 
 // --- 例化 AXI DMA 引擎 ---
 axi_dma #(
@@ -1246,7 +1252,16 @@ isp_top #(
     .clk                   (sys_clk    ),
     .rst_n                 (sys_resetn ),
 
+    .width                 (isp_cfg_width ),
+    .height                (isp_cfg_height),
+
     .cpu_frame_start_pulse (isp_cpu_frame_start_pulse),
+    .isp_selector          (isp_cfg_selector),
+    .brightness_thresh     (isp_cfg_brightness_thresh),
+    .contrast_thresh       (isp_cfg_contrast_thresh),
+    .awb_R_thresh          (isp_cfg_awb_r_thresh),
+    .awb_G_thresh          (isp_cfg_awb_g_thresh),
+    .awb_B_thresh          (isp_cfg_awb_b_thresh),
     .fifo_overflow         (),     // 暂不处理警告信号
 
     // 接收 DMA 读取通道的数据
@@ -1315,6 +1330,9 @@ dma_config_axil u_dma_config_axil (
  * 这是一个简单的 AXI-Lite 从设备，向其特定地址写入任意值
  * 就会产生一个 `frame_start_pulse` 脉冲。
  */
+
+ wire  [7:0] isp_cfg_width ;
+ wire  [7:0] isp_cfg_height;
 isp_config_axil u_isp_config_axil (
     .aclk               (sys_clk),
     .aresetn            (sys_resetn),
@@ -1349,7 +1367,15 @@ isp_config_axil u_isp_config_axil (
     .s_axil_rready      (s5_axil_rready),
 
     // --- ISP 控制接口 ---
-    .frame_start_pulse  (isp_cpu_frame_start_pulse)
+    .frame_start_pulse  (isp_cpu_frame_start_pulse),
+    .isp_selector       (isp_cfg_selector),
+    .brightness_thresh  (isp_cfg_brightness_thresh),
+    .contrast_thresh    (isp_cfg_contrast_thresh),
+    .awb_R_thresh       (isp_cfg_awb_r_thresh),
+    .awb_G_thresh       (isp_cfg_awb_g_thresh),
+    .awb_B_thresh       (isp_cfg_awb_b_thresh),
+    .width              (isp_cfg_width ),
+    .height             (isp_cfg_height)
 );
 
 endmodule

@@ -27,7 +27,15 @@ module isp_config_axil (
     input  wire        s_axil_rready,
 
     // --- ISP Control Interface ---
-    output wire        frame_start_pulse
+    output reg         frame_start_pulse,
+    output reg  [8:0]  isp_selector,
+    output reg  [7:0]  brightness_thresh,
+    output reg  [7:0]  contrast_thresh,
+    output reg  [7:0]  awb_R_thresh,
+    output reg  [7:0]  awb_G_thresh,
+    output reg  [7:0]  awb_B_thresh,
+    output reg  [7:0]  width,
+    output reg  [7:0]  height
 );
 
     // ==========================================
@@ -37,11 +45,24 @@ module isp_config_axil (
     reg w_done;
     reg axi_bvalid;
     reg [31:0] awaddr_reg; // 锁存写地址
+    reg [31:0] wdata_reg;  // 锁存写数据
+
+    localparam [7:0] start = 8'h00;//是否处理？
+    localparam [7:0] isp_setting = 8'h04;//算法选择？
+    localparam [7:0] brightness = 8'h08;//亮度值？
+    localparam [7:0] contrast = 8'h0C;//对比度？
+    localparam [7:0] awb_R = 8'h10;//R通道增益？  
+    localparam [7:0] awb_G = 8'h14;//G通道增益？
+    localparam [7:0] awb_B = 8'h18;//B通道增益？
+    localparam [7:0] width_config = 8'h1C;//图像宽度？
+    localparam [7:0] height_config = 8'h20;//图像高度？
 
     assign s_axil_awready = ~aw_done && ~axi_bvalid;
     assign s_axil_wready  = ~w_done  && ~axi_bvalid;
     assign s_axil_bvalid  = axi_bvalid;
     assign s_axil_bresp   = 2'b00;
+
+    wire slv_reg_wren = aw_done && w_done && ~axi_bvalid;
 
     always @(posedge aclk) begin
         if (~aresetn) begin
@@ -49,6 +70,7 @@ module isp_config_axil (
             w_done     <= 1'b0;
             axi_bvalid <= 1'b0;
             awaddr_reg <= 32'd0;
+            wdata_reg  <= 32'd0;
         end else begin
             // 独立接收地址
             if (s_axil_awvalid && s_axil_awready) begin
@@ -59,6 +81,7 @@ module isp_config_axil (
             // 独立接收数据
             if (s_axil_wvalid && s_axil_wready) begin
                 w_done     <= 1'b1;
+                wdata_reg  <= s_axil_wdata;
             end
             
             // 地址和数据收齐，发回执
@@ -76,25 +99,40 @@ module isp_config_axil (
     end
 
     // ==========================================
-    // 2. 寄存器逻辑 (产生 frame_start_pulse)
+    // 2. 寄存器逻辑
     // ==========================================
-    reg pulse_r;
-
     always @(posedge aclk) begin
         if (~aresetn) begin
-            pulse_r <= 1'b0;
+            frame_start_pulse <= 1'b0;
+            isp_selector      <= 9'd0;
+            brightness_thresh <= 8'd0;
+            contrast_thresh   <= 8'd0;
+            awb_R_thresh      <= 8'd0;
+            awb_G_thresh      <= 8'd0;
+            awb_B_thresh      <= 8'd0;
+            width             <= 8'd0;
+            height             <= 8'd0;
         end else begin
-            // 利用 aw_done && w_done 的单周期特性触发脉冲
-            // 当地址和数据都收齐的那一拍，如果写入的是基地址 (0x00)，拉高脉冲
-            if (aw_done && w_done && (awaddr_reg[7:0] == 8'h00)) begin
-                pulse_r <= 1'b1;
-            end else begin
-                pulse_r <= 1'b0;
+            frame_start_pulse <= 1'b0;
+
+            if (slv_reg_wren) begin
+                case (awaddr_reg[7:0])
+                    start:       frame_start_pulse <= wdata_reg[0];
+                    isp_setting: isp_selector      <= wdata_reg[8:0];
+                    brightness:  brightness_thresh <= wdata_reg[7:0];
+                    contrast:    contrast_thresh   <= wdata_reg[7:0];
+                    awb_R:       awb_R_thresh      <= wdata_reg[7:0];
+                    awb_G:       awb_G_thresh      <= wdata_reg[7:0];
+                    awb_B:       awb_B_thresh      <= wdata_reg[7:0];
+                    width_config:      width             <= wdata_reg[7:0];
+                    height_config:      height             <= wdata_reg[7:0];
+                    default: begin
+                    end
+                endcase
             end
         end
     end
 
-    assign frame_start_pulse = pulse_r;
 
     // ==========================================
     // 3. 读通道：防吞包设计
@@ -114,8 +152,18 @@ module isp_config_axil (
         end else begin
             if (s_axil_arvalid && s_axil_arready) begin
                 axi_rvalid <= 1'b1;
-                // ISP 模块目前没有状态供 CPU 读取，所以无论读什么地址都返回 0
-                axi_rdata  <= 32'd0; 
+                case (s_axil_araddr[7:0])
+                    start:       axi_rdata <= 32'd0;
+                    isp_setting: axi_rdata <= {23'd0, isp_selector};
+                    brightness:  axi_rdata <= {24'd0, brightness_thresh};
+                    contrast:    axi_rdata <= {24'd0, contrast_thresh};
+                    awb_R:       axi_rdata <= {24'd0, awb_R_thresh};
+                    awb_G:       axi_rdata <= {24'd0, awb_G_thresh};
+                    awb_B:       axi_rdata <= {24'd0, awb_B_thresh};
+                    width_config:      axi_rdata <= {24'd0, width};
+                    height_config:      axi_rdata <= {24'd0, height};
+                    default:     axi_rdata <= 32'd0;
+                endcase
             end else if (s_axil_rready && axi_rvalid) begin
                 axi_rvalid <= 1'b0;
             end
