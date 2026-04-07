@@ -1,7 +1,7 @@
 from PIL import Image, ImageDraw
 
-# 1. 尺寸设定为极其小巧的 64x64
-width, height = 64, 64
+# 1. 尺寸设定为极其小巧的 128x128
+width, height = 128, 128
 
 # 2. 用 Python 画一张高对比度的彩色测试图
 img = Image.new('RGB', (width, height), color='blue')  # 蓝色背景
@@ -10,8 +10,8 @@ draw.ellipse((10, 10, 54, 54), fill='red')             # 画一个大红圆
 draw.rectangle((24, 24, 40, 40), fill='yellow')        # 中心画一个黄方块
 
 # 保存出来给你看一眼原图
-img.save('test_64x64.jpg')
-print("✅ 生成了测试原图: test_64x64.jpg (快打开看看长什么样！)")
+img.save('test_128x128.jpg')
+print("✅ 生成了测试原图: test_128x128.jpg (快打开看看长什么样！)")
 
 # 3. 转换为 Vivado 可读的 hex 文件
 pixels = img.load()

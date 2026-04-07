@@ -3,14 +3,13 @@
 module AXI2Video #(
     // 你需要根据你的 DMA 参数设置这里的位宽
     parameter AXIS_DATA_WIDTH = 32,
-    parameter IMG_WIDTH = 16'd64,
-    parameter IMG_HEIGHT = 16'd64
+    parameter FIFO_DEPTH = 16385
 )(
     input  wire        clk,
     input  wire        rst_n,
 
-
-
+    input  [15:0]      img_width,//输入图像宽度 (从寄存器接口获取)
+    input  [15:0]      img_height,//输入图像高度 (从寄存器接口获取)
     // --- 输入：CPU 触发帧复位 (需要龙芯 CPU 通过寄存器产生一个脉冲) ---
     input  wire        cpu_frame_start_pulse, 
 
@@ -26,9 +25,6 @@ module AXI2Video #(
     output reg        isp_de,
     output reg [23:0] isp_data
 );
-
-    localparam integer FRAME_PIXELS = IMG_WIDTH * IMG_HEIGHT;
-    localparam integer FIFO_DEPTH = FRAME_PIXELS;
 
     reg        frame_request_r;
     reg        frame_buffer_ready_r;
@@ -63,8 +59,8 @@ module AXI2Video #(
     );
 
     wire axis_fire = frame_active_r & ~line_gap_r & ~fifo_empty;
-    wire last_pixel_in_line = (pixel_cnt_r == IMG_WIDTH - 1'b1);
-    wire last_line_in_frame = (line_cnt_r == IMG_HEIGHT - 1'b1);
+    wire last_pixel_in_line = (pixel_cnt_r == img_width - 1'b1);
+    wire last_line_in_frame = (line_cnt_r == img_height - 1'b1);
     assign fifo_rd_en = axis_fire;
 
     always @(posedge clk or negedge rst_n) begin

@@ -6,9 +6,9 @@ if not os.path.exists(file_name):
     print(f"找不到 {file_name} 文件，请检查路径！")
     exit()
 
-# 在你之前的 hex2img.py 里，把这两行改掉：
-width, height = 64, 64
-img = Image.new('L', (width, height))
+# 按 RGB 原样还原输出图像
+width, height = 128, 128
+img = Image.new('RGB', (width, height))
 pixels = img.load()
 
 with open(file_name, 'r') as f:
@@ -24,14 +24,12 @@ with open(file_name, 'r') as f:
                     r = (rgb_24bit >> 16) & 0xFF
                     g = (rgb_24bit >> 8)  & 0xFF
                     b = rgb_24bit         & 0xFF
-                    # 转灰度
-                    gray_val = int(r * 0.299 + g * 0.587 + b * 0.114)
-                    pixels[x, y] = gray_val
+                    pixels[x, y] = (r, g, b)
                 except ValueError:
-                    pixels[x, y] = 0
+                    pixels[x, y] = (0, 0, 0)
                 idx += 1
 
 output_name = 'output_image.jpg'
 img.save(output_name, 'JPEG')
 img.show()
-print(f"完美！灰度图片 {output_name} ({width}x{height}) 生成完毕！")
+print(f"完美！彩色图片 {output_name} ({width}x{height}) 生成完毕！")

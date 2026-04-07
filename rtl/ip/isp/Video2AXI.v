@@ -2,7 +2,7 @@
 
 module video_to_axis_bridge #(
     parameter AXIS_DATA_WIDTH = 32,
-    parameter FIFO_DEPTH = 4096 // 当前整帧 64x64x1word，至少要容下 4096 个 word
+    parameter FIFO_DEPTH = 32'h1F8000 // 当前整帧 64x64x1word，至少要容下 4096 个 word
 )(
     input  wire        clk,
     input  wire        rst_n,

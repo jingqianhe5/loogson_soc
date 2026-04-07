@@ -34,8 +34,8 @@ module isp_config_axil (
     output reg  [7:0]  awb_R_thresh,
     output reg  [7:0]  awb_G_thresh,
     output reg  [7:0]  awb_B_thresh,
-    output reg  [7:0]  width,
-    output reg  [7:0]  height
+    output reg  [15:0]  width,
+    output reg  [15:0]  height
 );
 
     // ==========================================
@@ -124,8 +124,8 @@ module isp_config_axil (
                     awb_R:       awb_R_thresh      <= wdata_reg[7:0];
                     awb_G:       awb_G_thresh      <= wdata_reg[7:0];
                     awb_B:       awb_B_thresh      <= wdata_reg[7:0];
-                    width_config:      width             <= wdata_reg[7:0];
-                    height_config:      height             <= wdata_reg[7:0];
+                    width_config:      width             <= wdata_reg[15:0];
+                    height_config:      height             <= wdata_reg[15:0];
                     default: begin
                     end
                 endcase

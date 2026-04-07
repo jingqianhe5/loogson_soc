@@ -207,11 +207,11 @@ initial begin
     // 假设 C 代码里配置 DMA 读起始地址为 0x1C10_0000
     // base_sram 基地址是 0x1C00_0000，偏移量是 0x10_0000 字节。
     // Verilog 数组索引是 Word(32-bit) 地址，所以索引 = 0x100000 / 4 = 0x40000。
-    // 假设图像是 256x256 (65536 像素)，占 0x10000 个 Word。
-    // 结束索引 = 0x40000 + 0x10000 - 1 = 0x4FFFF。
+    // 当前图像是 128x128 (16384 像素)，占 0x4000 个 Word。
+    // 结束索引 = 0x80000 + 0x4000 - 1 = 0x83FFF。
     
     // 从 image_in.hex 读取数据，塞入 BRAM
-   $readmemh("/home/hjq/usr/loongson/la32r_soc_ciciec-2/sdk/software/examples/isp_test/image_in.hex", base_sram_sp.BRAM, 21'h80000, 21'h80FFF);
+   $readmemh("/home/hjq/usr/loongson/la32r_soc_ciciec-2/sdk/software/examples/isp_test/image_in.hex", base_sram_sp.BRAM, 21'h80000, 21'h83FFF);
     
     $display("--- [TB] Image Loaded Successfully!   ---");
     $display("-----------------------------------------");
@@ -233,7 +233,8 @@ initial begin
     // 【地址映射核对】:
     // 假设 C 代码里配置 DMA 写回地址为 0x1C20_0000
     // 偏移量 0x20_0000 字节 -> Word 索引 = 0x200000 / 4 = 0x80000。
-    // 结束索引 = 0x80000 + 0x10000 - 1 = 0x8FFFF。
+    // 当前导出 128x128，共 0x4000 个 Word。
+    // 结束索引 = 0xC0000 + 0x4000 - 1 = 0xC3FFF。
     
     // XSIM 对这里的 $writememh 支持不稳定，手动逐行导出更可靠
     begin : dump_image
@@ -243,7 +244,7 @@ initial begin
         if (fd == 0) begin
             $display("[%0t] ERROR: failed to open image_out.hex for write", $time);
         end else begin
-            for (idx = 21'hC0000; idx <= 21'hC0FFF; idx = idx + 1) begin
+            for (idx = 21'hC0000; idx <= 21'hC3FFF; idx = idx + 1) begin
                 $fdisplay(fd, "%08x", base_sram_sp.BRAM[idx]);
             end
             $fclose(fd);

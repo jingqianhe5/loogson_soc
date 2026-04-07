@@ -20,16 +20,18 @@ int main(int argc, char** argv)
     printf("hello this is JingqianSoc!!!\n");
     
     unsigned long DMA_BASE = 0xbf300000;
-    unsigned long ISP_BASE = 0xbf400000;
+    unsigned long ISP_BASE = 0xbf500000;
     
     printf("setting isp\n");
     // 1. 战术调整：先唤醒 ISP！让 ISP 敞开大门，准备好接收马上到来的流水线数据
-    *(volatile unsigned int *)(ISP_BASE + 0x04) = 0x101; //等一下在找
+    *(volatile unsigned int *)(ISP_BASE + 0x04) = 0x102; //等一下在找
     *(volatile unsigned int *)(ISP_BASE + 0x08) = 0x9E; //亮度
     *(volatile unsigned int *)(ISP_BASE + 0x0C) = 0x7E; //对比度
     *(volatile unsigned int *)(ISP_BASE + 0x10) = 0x00;  //R
     *(volatile unsigned int *)(ISP_BASE + 0x14) = 0x00;  //G    
     *(volatile unsigned int *)(ISP_BASE + 0x18) = 0x00;  //B  
+    *(volatile unsigned int *)(ISP_BASE + 0x1C) = 0x80;  //宽度
+    *(volatile unsigned int *)(ISP_BASE + 0x20) = 0x80;  //长度
     *(volatile unsigned int *)(ISP_BASE + 0x00) = 0x01;   //启动！！！！！
     printf("working\n");
 
@@ -38,7 +40,7 @@ int main(int argc, char** argv)
     {
         const unsigned int src_addr  = 0x1C200000;
         const unsigned int dst_addr  = 0x1C300000;
-        const unsigned int total_len = 64 * 64 * 4;
+        const unsigned int total_len = 128 * 128 * 4;//搬运的长度  
 
         *(volatile unsigned int *)(DMA_BASE + 0x00) = src_addr;//读数据地址
         *(volatile unsigned int *)(DMA_BASE + 0x04) = total_len;//读数据长度

@@ -2,13 +2,14 @@
 
 module isp_top #(
     parameter AXIS_DATA_WIDTH = 32,
-    parameter FIFO_DEPTH = 4096
+    parameter INPUT_FIFO_DEPTH = 16385,
+    parameter OUTPUT_FIFO_DEPTH = 1024
 )(
     input  wire                        clk,
     input  wire                        rst_n,
 
-    input wire           [7:0]            width,  // 图像宽度 (从寄存器接口获取)
-    input wire           [7:0]            height, // 图像高度 (从寄存器接口获取)
+    input wire           [15:0]            width,  // 图像宽度 (从寄存器接口获取)
+    input wire           [15:0]            height, // 图像高度 (从寄存器接口获取)
 
     // --- 外部控制与状态信号 ---
     // CPU 触发帧复位脉冲 (连接至你的总线寄存器)
@@ -58,12 +59,13 @@ module isp_top #(
     // 1. 例化 AXI 转视频时序模块 (AXI-Stream -> Video)
     // ==========================================
     AXI2Video #(
-        .AXIS_DATA_WIDTH(AXIS_DATA_WIDTH)
-        //.IMG_WIDTH(16'd64),  
-        //.IMG_HEIGHT(16'd64)  
+        .AXIS_DATA_WIDTH(AXIS_DATA_WIDTH),
+        .FIFO_DEPTH(INPUT_FIFO_DEPTH)
     ) u_AXI2Video (
         .clk                   (clk),
         .rst_n                 (rst_n),
+        .img_width             (width),  // 从寄存器接口获取
+        .img_height            (height), // 从寄存器接口获取
         .cpu_frame_start_pulse (cpu_frame_start_pulse),
         .s_axis_tdata          (s_axis_tdata),
         .s_axis_tvalid         (s_axis_tvalid),
@@ -101,7 +103,7 @@ module isp_top #(
     // ==========================================
     video_to_axis_bridge #(
         .AXIS_DATA_WIDTH(AXIS_DATA_WIDTH),
-        .FIFO_DEPTH(FIFO_DEPTH)
+        .FIFO_DEPTH(OUTPUT_FIFO_DEPTH)
     ) u_video_to_axis_bridge (
         .clk                   (clk),
         .rst_n                 (rst_n),
