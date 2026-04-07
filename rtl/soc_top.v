@@ -80,10 +80,8 @@ module soc_top #(parameter SIMULATION=1'b0)
     output          flash_byte_n,       //Flash 8bit模式选择，低有效。在使用flash的16位模式时请设为1
 
     //------uart-------
-    //inout           UART_RX,            //串口RX接收
-    //inout           UART_TX             //串口TX发送
-    input UART_RX,
-    output UART_TX
+    inout           UART_RX,            //串口RX接收
+    inout           UART_TX             //串口TX发送
 );
 
 wire cpu_clk;
@@ -198,11 +196,14 @@ wire [31:0] cpu_debug0_wb_inst;
 
 wire        confreg_int;
 wire        uart0_int;
+wire        confreg_dma_finish;
+wire        confreg_fft_finish;
 //-----------------------------------------------------
-assign intrpt      = {6'd0, confreg_int, uart0_int};
+assign intrpt      = {7'd0, confreg_int};
 assign cpu_break_point = 1'b0;
 assign cpu_infor_flag  = 1'b0;
 assign cpu_reg_num     = 5'd0;
+assign confreg_fft_finish = 1'b0;
 //-----------------------------------------------------
 
 // 实例化 CPU (core_top)
@@ -210,7 +211,7 @@ assign cpu_reg_num     = 5'd0;
 core_top u_core_top (
     .aclk               (cpu_clk    ),
     .aresetn            (cpu_resetn ),
-    .intrpt             (8'b0 ),
+    .intrpt             ( {7'b0,confreg_int} ), 
     
     // AXI Read Request
     .arid               (cpu_arid   ),//4
@@ -477,25 +478,12 @@ wire [ 1:0] s2_axil_rresp;
 wire        s2_axil_rvalid;
 wire        s2_axil_rready;
 
-// --- S3 AXI Interface ---
+// --- S3 AXI Interface (连接至 DVI) ---
 wire [31:0] s3_axi_awaddr; wire [ 5:0] s3_axi_awid; wire [ 7:0] s3_axi_awlen; wire [ 2:0] s3_axi_awsize; wire [ 1:0] s3_axi_awburst; wire [ 0:0] s3_axi_awlock; wire [ 3:0] s3_axi_awcache; wire [ 2:0] s3_axi_awprot; wire s3_axi_awvalid; wire s3_axi_awready;
 wire [31:0] s3_axi_wdata;  wire [ 3:0] s3_axi_wstrb; wire        s3_axi_wlast; wire        s3_axi_wvalid; wire        s3_axi_wready;
 wire [ 5:0] s3_axi_bid;    wire [ 1:0] s3_axi_bresp; wire        s3_axi_bvalid; wire        s3_axi_bready;
 wire [31:0] s3_axi_araddr; wire [ 5:0] s3_axi_arid; wire [ 7:0] s3_axi_arlen; wire [ 2:0] s3_axi_arsize; wire [ 1:0] s3_axi_arburst; wire [ 0:0] s3_axi_arlock; wire [ 3:0] s3_axi_arcache; wire [ 2:0] s3_axi_arprot; wire s3_axi_arvalid; wire s3_axi_arready;
 wire [31:0] s3_axi_rdata;  wire [ 5:0] s3_axi_rid;  wire [ 1:0] s3_axi_rresp; wire        s3_axi_rlast;  wire        s3_axi_rvalid; wire        s3_axi_rready;
-
-// S3 当前未接实际从设备，固定返回避免悬空传播 X/Z
-assign s3_axi_awready = 1'b1;
-assign s3_axi_wready  = 1'b1;
-assign s3_axi_bid     = 6'd0;
-assign s3_axi_bresp   = 2'b0;
-assign s3_axi_bvalid  = 1'b0;
-assign s3_axi_arready = 1'b1;
-assign s3_axi_rid     = 6'd0;
-assign s3_axi_rdata   = 32'd0;
-assign s3_axi_rresp   = 2'b0;
-assign s3_axi_rlast   = 1'b0;
-assign s3_axi_rvalid  = 1'b0;
 
 // --- S4 AXI Interface (连接至 confreg) ---
 wire [31:0] s4_axi_awaddr; wire [ 5:0] s4_axi_awid; wire [ 7:0] s4_axi_awlen; wire [ 2:0] s4_axi_awsize; wire [ 1:0] s4_axi_awburst; wire [ 0:0] s4_axi_awlock; wire [ 3:0] s4_axi_awcache; wire [ 2:0] s4_axi_awprot; wire s4_axi_awvalid; wire s4_axi_awready;
@@ -632,7 +620,7 @@ AXI_top #(
         32'h1F200000,  // M4 confreg
         32'h1F100000,  // M3 DVI
         32'h1F000000,  // M2 uart
-        32'h20000000,  // M1 flash
+        32'h00000000,  // M1 flash
         32'h1C000000   // M0 sram
     }),
     .M_ADDR_WIDTH ({
@@ -928,6 +916,56 @@ axi_uart_controller u_axi_uart_controller (
 );
 
 //==================================================
+// 实例化 AXI DVI 控制器 (连接至 S3 端口)
+//==================================================
+axi_dvi u_axi_dvi (
+    .s_awvalid      (s3_axi_awvalid  ),
+    .s_awready      (s3_axi_awready  ),
+    .s_awaddr       (s3_axi_awaddr   ),
+    .s_awid         (s3_axi_awid     ),
+    .s_awlen        (s3_axi_awlen    ),
+    .s_awsize       (s3_axi_awsize   ),
+    .s_awburst      (s3_axi_awburst  ),
+    .s_awlock       (s3_axi_awlock   ),
+    .s_awcache      (s3_axi_awcache  ),
+    .s_awprot       (s3_axi_awprot   ),
+    .s_wvalid       (s3_axi_wvalid   ),
+    .s_wready       (s3_axi_wready   ),
+    .s_wdata        (s3_axi_wdata    ),
+    .s_wstrb        (s3_axi_wstrb    ),
+    .s_wlast        (s3_axi_wlast    ),
+    .s_bvalid       (s3_axi_bvalid   ),
+    .s_bready       (s3_axi_bready   ),
+    .s_bid          (s3_axi_bid      ),
+    .s_bresp        (s3_axi_bresp    ),
+    .s_arvalid      (s3_axi_arvalid  ),
+    .s_arready      (s3_axi_arready  ),
+    .s_araddr       (s3_axi_araddr   ),
+    .s_arid         (s3_axi_arid     ),
+    .s_arlen        (s3_axi_arlen    ),
+    .s_arsize       (s3_axi_arsize   ),
+    .s_arburst      (s3_axi_arburst  ),
+    .s_arlock       (s3_axi_arlock   ),
+    .s_arcache      (s3_axi_arcache  ),
+    .s_arprot       (s3_axi_arprot   ),
+    .s_rvalid       (s3_axi_rvalid   ),
+    .s_rready       (s3_axi_rready   ),
+    .s_rdata        (s3_axi_rdata    ),
+    .s_rid          (s3_axi_rid      ),
+    .s_rresp        (s3_axi_rresp    ),
+    .s_rlast        (s3_axi_rlast    ),
+    .video_clk      (video_clk       ),
+    .hsync          (video_hsync     ),
+    .vsync          (video_vsync     ),
+    .data_enable    (video_de        ),
+    .video_red      (video_red       ),
+    .video_green    (video_green     ),
+    .video_blue     (video_blue      ),
+    .aclk           (sys_clk         ),
+    .aresetn        (sys_resetn      )
+);
+
+//==================================================
 // 实例化 AXI to AXI-Lite 适配器 (连接至 S1 端口, 用于Flash)
 //==================================================
 axi_axil_adapter #(
@@ -1171,6 +1209,7 @@ flash_axil_wrap u_flash_axil_wrap (
 // 实例化 Confreg (连接至 S4 端口)
 //==================================================
 confreg #(
+    .ID_WIDTH       (6               ),
     .SIMULATION     (SIMULATION      )
 ) u_confreg (
     .aclk           (sys_clk         ),
@@ -1222,6 +1261,8 @@ confreg #(
     .dpy1           (dpy1            ),
     .switch         (dip_sw          ),
     .touch_btn      (touch_btn       ),
+    .dma_finish     (confreg_dma_finish),
+    .fft_finish     (confreg_fft_finish),
     .confreg_int    (confreg_int     )
 );
 
@@ -1252,6 +1293,8 @@ wire [31:0] dma_write_cmd_addr;
 wire [19:0] dma_write_cmd_len;
 wire        dma_write_cmd_valid;
 wire        dma_write_cmd_ready;
+wire        dma_read_desc_status_valid;
+wire        dma_write_desc_status_valid;
 wire        isp_cpu_frame_start_pulse;
 wire [8:0]  isp_cfg_selector;
 wire [7:0]  isp_cfg_brightness_thresh;
@@ -1261,6 +1304,8 @@ wire [7:0]  isp_cfg_awb_g_thresh;
 wire [7:0]  isp_cfg_awb_b_thresh;
 wire [15:0] isp_cfg_width;
 wire [15:0] isp_cfg_height;
+
+assign confreg_dma_finish = dma_read_desc_status_valid | dma_write_desc_status_valid;
 
 // --- 例化 AXI DMA 引擎 ---
 axi_dma #(
@@ -1285,7 +1330,7 @@ axi_dma #(
     .s_axis_read_desc_ready (dma_read_cmd_ready),
     .m_axis_read_desc_status_tag   (),
     .m_axis_read_desc_status_error (),
-    .m_axis_read_desc_status_valid (),
+    .m_axis_read_desc_status_valid (dma_read_desc_status_valid),
 
     // DMA 写任务指令接口 (ISP -> SRAM)
     .s_axis_write_desc_addr  (dma_write_cmd_addr),
@@ -1299,7 +1344,7 @@ axi_dma #(
     .m_axis_write_desc_status_dest (),
     .m_axis_write_desc_status_user (),
     .m_axis_write_desc_status_error(),
-    .m_axis_write_desc_status_valid(),
+    .m_axis_write_desc_status_valid(dma_write_desc_status_valid),
 
     // DMA 的 内存读结果 通过 AXI-Stream 输出给 ISP
     .m_axis_read_data_tdata  (axis_dma2isp_tdata ),

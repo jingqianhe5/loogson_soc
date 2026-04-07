@@ -1,0 +1,24 @@
+#-----------------------------------------------------------
+# xsim v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 12:34:56 MST 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Tue Apr  7 21:26:07 2026
+# Process ID         : 91
+# Current directory  : /home/hjq/usr/loongson/la32r_soc_ciciec-2
+# Command line       : xsim -log /tmp/xsim_root_R.log -mode tcl -source {fpga/project/Loongson_Soc.sim/sim_1/behav/xsim/xsim.dir/tb_top_behav/xsim_script.tcl}
+# Log file           : /tmp/xsim_root_R.log
+# Journal file       : /home/hjq/usr/loongson/la32r_soc_ciciec-2/xsim.jou
+# Running On         : hjq
+# Platform           : Ubuntu
+# Operating System   : Ubuntu 24.04.4 LTS
+# Processor Detail   : AMD Ryzen 7 8845H w/ Radeon 780M Graphics
+# CPU Frequency      : 4091.187 MHz
+# CPU Physical cores : 8
+# CPU Logical cores  : 16
+# Host memory        : 16012 MB
+# Swap memory        : 42360 MB
+# Total Virtual      : 58372 MB
+# Available Virtual  : 49503 MB
+#-----------------------------------------------------------
+source fpga/project/Loongson_Soc.sim/sim_1/behav/xsim/xsim.dir/tb_top_behav/xsim_script.tcl

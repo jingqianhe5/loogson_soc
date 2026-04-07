@@ -32,12 +32,14 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ------------------------------------------------------------------------------*/
 `timescale 1ns / 1ps
 `include "config.h"
+// `define FFT_OUTPUT_TXT
 
 `define UART_PSEL               u_soc_top.u_axi_uart_controller.uart0.PSEL
 `define UART_PENBLE             u_soc_top.u_axi_uart_controller.uart0.PENABLE
 `define UART_PWRITE             u_soc_top.u_axi_uart_controller.uart0.PWRITE
 `define UART_WADDR              u_soc_top.u_axi_uart_controller.uart0.PADDR[7:0]
 `define UART_WDATA              u_soc_top.u_axi_uart_controller.uart0.PWDATA[7:0]
+`define END_PC                  32'h1c000200
 
 module tb_top( );
 reg reset;
@@ -70,9 +72,8 @@ wire  ext_ram_we_n;
 wire  [31:0]  base_ram_data;
 wire  [31:0]  ext_ram_data;
 
-
-initial
-begin
+//产生时钟与复位信号
+initial begin
     clk = 1'b0;
     reset = 1'b1;
     dip_sw = 32'h0;
@@ -81,8 +82,8 @@ begin
 end
 always #10 clk=~clk;
 
-initial
-begin
+//产生按键信号
+initial begin
     touch_btn = 4'h0;
     dip_sw    = 32'h0000_abcd;
 
@@ -145,30 +146,6 @@ soc_top  #(.SIMULATION(1'b1)) u_soc_top (
     .UART_TX                 ( UART_TX       )
 );
 
-
-//模拟串口打印
-wire uart_display;
-wire [7:0] uart_data;
-wire uart_wen;
-assign uart_wen = (`UART_PSEL == 1'b1) &&  (`UART_PENBLE == 1'b1) && (`UART_PWRITE == 1'b1);
-assign uart_display = (uart_wen == 1'b1) && (`UART_WADDR == 8'h0);
-assign uart_data    = `UART_WDATA;
-
-always @(posedge clk)
-begin
-    if(uart_display)
-    begin
-        if(uart_data==8'hff)
-        begin
-            ;//$finish;
-        end
-        else
-        begin
-            $write("%c",uart_data);
-        end
-    end
-end
-
 sram_sp #(
     .AW        ( 21     ),
     .Init_File(`SRAM_Init_File))
@@ -194,68 +171,60 @@ ext_sram_sp (
 
     .ram_data                ( ext_ram_data   )
 );
-initial begin
-    // 必须等待一段时间！
-    // 因为 sram_sp 内部有 $readmemb(Init_File, BRAM) 会在 0 时刻加载启动代码。
-    // 我们等启动代码加载完、系统复位结束后，再把图像数据“强塞”进去。
-    #5000; 
-    
-    $display("-----------------------------------------");
-    $display("--- [TB] Start Loading Image to SRAM  ---");
-    
-    // 【地址映射核对】:
-    // 假设 C 代码里配置 DMA 读起始地址为 0x1C10_0000
-    // base_sram 基地址是 0x1C00_0000，偏移量是 0x10_0000 字节。
-    // Verilog 数组索引是 Word(32-bit) 地址，所以索引 = 0x100000 / 4 = 0x40000。
-    // 当前图像是 128x128 (16384 像素)，占 0x4000 个 Word。
-    // 结束索引 = 0x80000 + 0x4000 - 1 = 0x83FFF。
-    
-    // 从 image_in.hex 读取数据，塞入 BRAM
-   $readmemh("/home/hjq/usr/loongson/la32r_soc_ciciec-2/sdk/software/examples/isp_test/image_in.hex", base_sram_sp.BRAM, 21'h80000, 21'h83FFF);
-    
-    $display("--- [TB] Image Loaded Successfully!   ---");
-    $display("-----------------------------------------");
-end
 
-// ===================================================================
-// [新增功能 2]：仿真后期 -> 导出处理后的图像数据
-// ===================================================================
-initial begin
-    // 给系统留出足够的处理时间！
-    // 256x256=65536个像素，假设 ISP 处理一个像素要 1 个时钟周期(10ns)，
-    // 加上 DMA 总线传输的开销，至少需要几毫秒的仿真时间。
-    // 这里等待 20 毫秒 (20,000,000 ns)，如果提前跑完了可以在 C 代码里加个打印。
-    #8000000; 
-    
-    $display("-----------------------------------------");
-    $display("--- [TB] Start Extracting Image       ---");
-    
-    // 【地址映射核对】:
-    // 假设 C 代码里配置 DMA 写回地址为 0x1C20_0000
-    // 偏移量 0x20_0000 字节 -> Word 索引 = 0x200000 / 4 = 0x80000。
-    // 当前导出 128x128，共 0x4000 个 Word。
-    // 结束索引 = 0xC0000 + 0x4000 - 1 = 0xC3FFF。
-    
-    // XSIM 对这里的 $writememh 支持不稳定，手动逐行导出更可靠
-    begin : dump_image
-        integer fd;
-        integer idx;
-        fd = $fopen("/home/hjq/usr/loongson/la32r_soc_ciciec-2/sdk/software/examples/isp_test/image_out.hex", "w");
-        if (fd == 0) begin
-            $display("[%0t] ERROR: failed to open image_out.hex for write", $time);
-        end else begin
-            for (idx = 21'hC0000; idx <= 21'hC3FFF; idx = idx + 1) begin
-                $fdisplay(fd, "%08x", base_sram_sp.BRAM[idx]);
-            end
-            $fclose(fd);
+//模拟串口打印
+wire uart_display;
+wire [7:0] uart_data;
+wire uart_wen;
+assign uart_wen = (`UART_PSEL == 1'b1) &&  (`UART_PENBLE == 1'b1) && (`UART_PWRITE == 1'b1);
+assign uart_display = (uart_wen == 1'b1) && (`UART_WADDR == 8'h0);
+assign uart_data    = `UART_WDATA;
+
+always @(posedge clk)
+begin
+    if(uart_display)
+    begin
+        if(uart_data==8'hff)
+        begin
+            ;//$finish;
+        end
+        else
+        begin
+            $write("%c",uart_data);
         end
     end
-    
-    $display("--- [TB] Extraction Complete!         ---");
-    $display("-----------------------------------------");
-    
-    // 数据拿到了，主动结束仿真，防止干等
-    $finish; 
 end
+
+//仿真结束
+wire [31:0] debug_wb_pc;
+assign debug_wb_pc = u_soc_top.cpu_debug0_wb_pc;
+wire test_end = debug_wb_pc==`END_PC;
+always @(posedge u_soc_top.cpu_clk)
+begin
+    if (!u_soc_top.cpu_resetn) begin
+    end
+    else if(test_end) begin
+        $display("==============================================================");
+        $display("Test end!");
+	    $finish;
+	end
+end
+
+//FFT测试结果输出
+`ifdef FFT_OUTPUT_TXT
+    integer fft_output_re;
+    integer fft_output_im;
+    initial begin
+        fft_output_re = $fopen("../../../../../../python/fft512_output_re.txt", "w"); 
+        fft_output_im = $fopen("../../../../../../python/fft512_output_im.txt", "w");
+        forever begin
+        @(posedge u_soc_top.u_axi_fft_top.u_axi_fft_wrap.aclk);
+        if(u_soc_top.u_axi_fft_top.u_axi_fft_wrap.valid_out) begin
+            $fwrite(fft_output_re, "%04h\n", u_soc_top.u_axi_fft_top.u_axi_fft_wrap.y_re);
+            $fwrite(fft_output_im, "%04h\n", u_soc_top.u_axi_fft_top.u_axi_fft_wrap.y_im);
+        end
+        end
+    end
+`endif
 
 endmodule
