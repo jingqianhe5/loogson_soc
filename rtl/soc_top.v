@@ -1271,18 +1271,20 @@ confreg #(
 //==================================================
 // 注意：axi_dma 和 isp_top 源文件目前不包含基于内存映射 AXI-Lite 的配置通道。
 // 如果你需要使用 CPU 配置这俩模块的寄存器，建议后续编写 AXI-Lite Wrapper 并连接在刚才引出的 S4 和 S5 号口上。
-// 这里优先打通 DMA 和 ISP 之间的 Stream 数据流。
+// 当前顶层先直接打通 DMA 读写回环，让数据从 SRAM 搬运到 DVI，ISP 数据链路暂时旁路。
 
-wire [31:0] axis_dma2isp_tdata;
-wire        axis_dma2isp_tvalid;
-wire        axis_dma2isp_tlast;
-wire        axis_dma2isp_tready;
+wire [31:0] axis_dma_read_tdata;
+wire [ 3:0] axis_dma_read_tkeep;
+wire        axis_dma_read_tvalid;
+wire        axis_dma_read_tlast;
+wire        axis_dma_read_tready;
 
-wire [31:0] axis_isp2dma_tdata;
-wire        axis_isp2dma_tvalid;
-wire        axis_isp2dma_tlast;
-wire [0:0]  axis_isp2dma_tuser;
-wire        axis_isp2dma_tready;
+wire [31:0] axis_dma_write_tdata;
+wire [ 3:0] axis_dma_write_tkeep;
+wire        axis_dma_write_tvalid;
+wire        axis_dma_write_tlast;
+wire [0:0]  axis_dma_write_tuser;
+wire        axis_dma_write_tready;
 
 // --- DMA 和 ISP 控制信号 (由配置模块驱动) ---
 wire [31:0] dma_read_cmd_addr;
@@ -1307,19 +1309,26 @@ wire [15:0] isp_cfg_height;
 
 assign confreg_dma_finish = dma_read_desc_status_valid | dma_write_desc_status_valid;
 
+assign axis_dma_read_tready = axis_dma_write_tready;
+assign axis_dma_write_tdata  = axis_dma_read_tdata;
+assign axis_dma_write_tkeep  = axis_dma_read_tkeep;
+assign axis_dma_write_tvalid = axis_dma_read_tvalid;
+assign axis_dma_write_tlast  = axis_dma_read_tlast;
+assign axis_dma_write_tuser  = 1'b0;
+
 // --- 例化 AXI DMA 引擎 ---
 axi_dma #(
     .AXI_DATA_WIDTH(32),
     .AXI_ADDR_WIDTH(32),
     .AXI_ID_WIDTH(5),   // 匹配 AXI_top 的 S_ID_WIDTH=5
     .AXIS_DATA_WIDTH(32),
-    // 当前 AXI->SRAM 适配链对 burst 的稳定性不足，先退回单拍访问保证数据正确
+    // 1 beat = 32-bit = 4 pixels, 16-beat burst = 64 pixels
     .AXI_MAX_BURST_LEN(16)
 ) u_axi_dma (
     .clk           (sys_clk    ),
     .rst           (~sys_resetn),
 
-    // DMA 读任务指令接口 (SRAM -> ISP)
+    // DMA 读任务指令接口 (SRAM -> DVI)
     .s_axis_read_desc_addr  (dma_read_cmd_addr),
     .s_axis_read_desc_len   (dma_read_cmd_len),
     .s_axis_read_desc_tag   (8'd0),
@@ -1332,7 +1341,7 @@ axi_dma #(
     .m_axis_read_desc_status_error (),
     .m_axis_read_desc_status_valid (dma_read_desc_status_valid),
 
-    // DMA 写任务指令接口 (ISP -> SRAM)
+    // DMA 写任务指令接口 (DMA 读数据 -> DVI)
     .s_axis_write_desc_addr  (dma_write_cmd_addr),
     .s_axis_write_desc_len   (dma_write_cmd_len),
     .s_axis_write_desc_tag   (8'd0),
@@ -1346,25 +1355,25 @@ axi_dma #(
     .m_axis_write_desc_status_error(),
     .m_axis_write_desc_status_valid(dma_write_desc_status_valid),
 
-    // DMA 的 内存读结果 通过 AXI-Stream 输出给 ISP
-    .m_axis_read_data_tdata  (axis_dma2isp_tdata ),
-    .m_axis_read_data_tkeep  (),
-    .m_axis_read_data_tvalid (axis_dma2isp_tvalid),
-    .m_axis_read_data_tready (axis_dma2isp_tready),
-    .m_axis_read_data_tlast  (axis_dma2isp_tlast ),
+    // DMA 的内存读结果直接回送写通道，用于 SRAM -> DVI
+    .m_axis_read_data_tdata  (axis_dma_read_tdata),
+    .m_axis_read_data_tkeep  (axis_dma_read_tkeep),
+    .m_axis_read_data_tvalid (axis_dma_read_tvalid),
+    .m_axis_read_data_tready (axis_dma_read_tready),
+    .m_axis_read_data_tlast  (axis_dma_read_tlast ),
     .m_axis_read_data_tid    (),
     .m_axis_read_data_tdest  (),
     .m_axis_read_data_tuser  (),
 
-    // DMA 将来自 ISP 的 AXI-Stream 数据 通过 内存写结果 存入内存
-    .s_axis_write_data_tdata  (axis_isp2dma_tdata ),
-    .s_axis_write_data_tkeep  (4'hF),
-    .s_axis_write_data_tvalid (axis_isp2dma_tvalid),
-    .s_axis_write_data_tready (axis_isp2dma_tready),
-    .s_axis_write_data_tlast  (axis_isp2dma_tlast ),
+    // DMA 写通道直接接收 DMA 读通道的数据
+    .s_axis_write_data_tdata  (axis_dma_write_tdata ),
+    .s_axis_write_data_tkeep  (axis_dma_write_tkeep),
+    .s_axis_write_data_tvalid (axis_dma_write_tvalid),
+    .s_axis_write_data_tready (axis_dma_write_tready),
+    .s_axis_write_data_tlast  (axis_dma_write_tlast ),
     .s_axis_write_data_tid    (8'd0),
     .s_axis_write_data_tdest  (8'd0),
-    .s_axis_write_data_tuser  (axis_isp2dma_tuser ),
+    .s_axis_write_data_tuser  (axis_dma_write_tuser ),
 
     // AXI 主机接口 (连接 Crossbar S1)
     .m_axi_awid    (dma_axi_awid   ), .m_axi_awaddr  (dma_axi_awaddr ),
@@ -1413,18 +1422,17 @@ isp_top #(
     .awb_B_thresh          (isp_cfg_awb_b_thresh),
     .fifo_overflow         (),     
 
-    // 接收 DMA 读取通道的数据
-    .s_axis_tdata          (axis_dma2isp_tdata ),
-    .s_axis_tvalid         (axis_dma2isp_tvalid),
-    .s_axis_tlast          (axis_dma2isp_tlast ),
-    .s_axis_tready         (axis_dma2isp_tready),
+    // 当前顶层暂不走 ISP 数据链路，保留例化但将其旁路
+    .s_axis_tdata          (32'd0),
+    .s_axis_tvalid         (1'b0),
+    .s_axis_tlast          (1'b0),
+    .s_axis_tready         (),
 
-    // 输出处理好的数据给 DMA 写回通道
-    .m_axis_tdata          (axis_isp2dma_tdata ),
-    .m_axis_tvalid         (axis_isp2dma_tvalid),
-    .m_axis_tlast          (axis_isp2dma_tlast ),
-    .m_axis_tuser          (axis_isp2dma_tuser ),
-    .m_axis_tready         (axis_isp2dma_tready)
+    .m_axis_tdata          (),
+    .m_axis_tvalid         (),
+    .m_axis_tlast          (),
+    .m_axis_tuser          (),
+    .m_axis_tready         (1'b0)
 );
 
 //==================================================
@@ -1438,7 +1446,7 @@ isp_top #(
  * - 0x08: 写地址 (R/W)
  * - 0x0C: 写长度 (R/W)
  * - 0x10: 命令寄存器 (W): bit0=启动读, bit1=启动写
- * - 0x14: 状态寄存器 (R): bit0=读指令ready, bit1=写指令ready
+ * - 0x14: 状态寄存器 (R): bit0=读指令ready, bit1=写指令ready, bit2=DMA busy, bit3=DMA done(sticky)
  */
 dma_config_axil u_dma_config_axil (
     .aclk           (sys_clk),
@@ -1471,7 +1479,9 @@ dma_config_axil u_dma_config_axil (
     .write_cmd_addr (dma_write_cmd_addr),
     .write_cmd_len  (dma_write_cmd_len),
     .write_cmd_valid(dma_write_cmd_valid),
-    .write_cmd_ready(dma_write_cmd_ready)
+    .write_cmd_ready(dma_write_cmd_ready),
+    .read_desc_status_valid (dma_read_desc_status_valid),
+    .write_desc_status_valid(dma_write_desc_status_valid)
 );
 
 /*

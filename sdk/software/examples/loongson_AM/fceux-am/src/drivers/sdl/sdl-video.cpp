@@ -1,0 +1,177 @@
+/* FCE Ultra - NES/Famicom Emulator
+ *
+ * Copyright notice for this file:
+ *  Copyright (C) 2002 Xodnizel
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ */
+
+#include <klib-macros.h>
+#include "sdl.h"
+#include "../common/vidblit.h"
+#include "../../fceu.h"
+#include "../../version.h"
+#include "../../video.h"
+
+#include "../../utils/memory.h"
+
+#include "sdl-icon.h"
+#include "dface.h"
+
+#include "sdl-video.h"
+#include "../../config.h"
+
+static int s_srendline;
+//static int s_erendline;
+static const int s_tlines = 240;
+static int s_inited;
+
+#define NWIDTH	256
+
+static int s_paletterefresh;
+
+int
+KillVideo()
+{
+	// return failure if the video system was not initialized
+	if(s_inited == 0)
+		return -1;
+
+	// if the rest of the system has been initialized, shut it down
+		// shut down the system that converts from 8 to 16/32 bpp
+  KillBlitToHigh();
+
+	s_inited = 0;
+	return 0;
+}
+
+
+void FCEUD_VideoChanged()
+{
+  PAL = 0; // NTSC and Dendy
+}
+
+/**
+ * Attempts to initialize the graphical video display.  Returns 0 on
+ * success, -1 on failure.
+ */
+int
+InitVideo(FCEUGI *gi)
+{
+	FCEUI_printf("Initializing video...");
+
+	// check the starting, ending, and total scan lines
+	//FCEUI_GetCurrentVidSystem(&s_srendline, &s_erendline);
+	//s_tlines = s_erendline - s_srendline + 1;
+
+	s_inited = 1;
+
+	FCEUI_SetShowFPS(true);
+
+	s_paletterefresh = 1;
+
+	 // if using more than 8bpp, initialize the conversion routines
+	InitBlitToHigh(4, 0x00ff0000, 0x0000ff00, 0x000000ff, 0, 0, 0);
+	return 0;
+}
+
+static struct {
+  uint8 r, g, b, unused;
+} s_psdl[256];
+
+static uint8 s_palette_rgb332[256];
+static uint16_t s_palette_rgb332_pair[256 * 256];
+
+static void RebuildPalettePairs(void)
+{
+  for (int hi = 0; hi < 256; hi++) {
+    int base = hi << 8;
+    uint16_t hi_part = (uint16_t)s_palette_rgb332[hi] << 8;
+    for (int lo = 0; lo < 256; lo++) {
+      s_palette_rgb332_pair[base | lo] = hi_part | s_palette_rgb332[lo];
+    }
+  }
+}
+
+/**
+ * Sets the color for a particular index in the palette.
+ */
+void
+FCEUD_SetPalette(uint8 index,
+                 uint8 r,
+                 uint8 g,
+                 uint8 b)
+{
+	s_psdl[index].r = r;
+	s_psdl[index].g = g;
+	s_psdl[index].b = b;
+
+	s_palette_rgb332[index] = (r & 0xE0) | ((g & 0xE0) >> 3) | ((b & 0xC0) >> 6);
+
+	s_paletterefresh = 1;
+}
+
+/**
+ * Pushes the given buffer of bits to the screen.
+ */
+void
+BlitScreen(uint8 *XBuf)
+{
+	// refresh the palette if required
+	if(s_paletterefresh) {
+	    SetPaletteBlitToHigh((uint8*)s_psdl);
+	    RebuildPalettePairs();
+			s_paletterefresh = 0;
+		}
+
+	// XXX soules - not entirely sure why this is being done yet
+	XBuf += s_srendline * 256;
+
+	// XXX soules - again, I'm surprised SDL can't handle this
+	// perform the blit, converting bpp if necessary
+  //Blit8ToHigh(XBuf, (uint8 *)canvas, NWIDTH, s_tlines, NWIDTH * 4, 1, 1);
+
+#ifdef HAS_GUI
+	  static uint8 canvas_frame_8bit[NWIDTH * 240] __attribute__((aligned(4)));
+	  static int sync_div = 0;
+	  uint32_t *dst32 = (uint32_t *)canvas_frame_8bit;
+	  int pixels = NWIDTH * s_tlines;
+	  for (int i = 0, j = 0; i < pixels; i += 4, j++) {
+	    uint32_t lo = s_palette_rgb332_pair[XBuf[i] | (XBuf[i + 1] << 8)];
+	    uint32_t hi = s_palette_rgb332_pair[XBuf[i + 2] | (XBuf[i + 3] << 8)];
+	    dst32[j] = lo | (hi << 16);
+	  }
+	  io_write(AM_GPU_FBDRAW, 0, 0, canvas_frame_8bit, NWIDTH, s_tlines, false);
+	  sync_div++;
+	  if (sync_div >= (FCEUX_GPU_SYNC_INTERVAL > 0 ? FCEUX_GPU_SYNC_INTERVAL : 1)) {
+	    io_write(AM_GPU_FBDRAW, 0, 0, NULL, 0, 0, true);
+	    sync_div = 0;
+	  }
+#else
+  static uint32_t canvas_line[NWIDTH];
+  int i;
+  printf("\033[2J\033[0;0H");
+  for (i = 0; i < s_tlines; i += 4, XBuf += NWIDTH * 4) {
+    Blit8ToHigh(XBuf, (uint8 *)canvas_line, NWIDTH, 1, NWIDTH * 4, 1, 1);
+    for (int x = 0; x < NWIDTH; x += 2) {
+      uint32_t color = canvas_line[x];
+      const char *list = "o. *O0@#";
+      char c = list[color / 0x222222u];
+      putch(c);
+    }
+    putch('\n');
+  }
+#endif
+}

@@ -35,7 +35,9 @@ module dma_config_axil (
     output wire [31:0] write_cmd_addr,
     output wire [19:0] write_cmd_len,
     output wire        write_cmd_valid,
-    input  wire        write_cmd_ready
+    input  wire        write_cmd_ready,
+    input  wire        read_desc_status_valid,
+    input  wire        write_desc_status_valid
 );
 
     // ==========================================
@@ -88,6 +90,12 @@ module dma_config_axil (
     reg [19:0] reg_write_len;
     reg        reg_read_cmd_valid;
     reg        reg_write_cmd_valid;
+    reg        reg_dma_busy;
+    reg        reg_dma_done;
+    reg        reg_read_pending;
+    reg        reg_write_pending;
+    reg        reg_read_desc_seen;
+    reg        reg_write_desc_seen;
 
     always @(posedge aclk) begin
         if (~aresetn) begin
@@ -97,10 +105,31 @@ module dma_config_axil (
             reg_write_len       <= 20'd0;
             reg_read_cmd_valid  <= 1'b0;
             reg_write_cmd_valid <= 1'b0;
+            reg_dma_busy        <= 1'b0;
+            reg_dma_done        <= 1'b0;
+            reg_read_pending    <= 1'b0;
+            reg_write_pending   <= 1'b0;
+            reg_read_desc_seen  <= 1'b0;
+            reg_write_desc_seen <= 1'b0;
         end else begin
             // 先处理清零逻辑：收到 DMA 响应后清零
             if (reg_read_cmd_valid && read_cmd_ready)   reg_read_cmd_valid  <= 1'b0;
             if (reg_write_cmd_valid && write_cmd_ready) reg_write_cmd_valid <= 1'b0;
+            if (read_desc_status_valid) begin
+                reg_read_pending   <= 1'b0;
+                reg_read_desc_seen <= 1'b1;
+            end
+            if (write_desc_status_valid) begin
+                reg_write_pending   <= 1'b0;
+                reg_write_desc_seen <= 1'b1;
+            end
+
+            if (reg_dma_busy &&
+                ((reg_read_pending && read_desc_status_valid) || !reg_read_pending) &&
+                ((reg_write_pending && write_desc_status_valid) || !reg_write_pending)) begin
+                reg_dma_busy <= 1'b0;
+                reg_dma_done <= 1'b1;
+            end
 
             // 再处理 CPU 写入（优先级更高，放在后面）
             // 当地址和数据都收齐的那一拍，执行写入
@@ -113,6 +142,16 @@ module dma_config_axil (
                     8'h10: begin // 启动寄存器
                         if (wdata_reg[0]) reg_read_cmd_valid  <= 1'b1;
                         if (wdata_reg[1]) reg_write_cmd_valid <= 1'b1;
+                        if (wdata_reg[1:0] != 2'b00) begin
+                            reg_dma_busy      <= 1'b1;
+                            reg_dma_done      <= 1'b0;
+                            reg_read_pending  <= wdata_reg[0];
+                            reg_write_pending <= wdata_reg[1];
+                            reg_read_desc_seen  <= 1'b0;
+                            reg_write_desc_seen <= 1'b0;
+                        end
+                    end
+                    default: begin
                     end
                 endcase
             end
@@ -151,7 +190,19 @@ module dma_config_axil (
                     8'h08: axi_rdata <= reg_write_addr;
                     8'h0C: axi_rdata <= {12'd0, reg_write_len};
                     8'h10: axi_rdata <= 32'd0; 
-                    8'h14: axi_rdata <= {30'd0, write_cmd_ready, read_cmd_ready}; 
+                    8'h14: axi_rdata <= {
+                        22'd0,
+                        reg_write_desc_seen,
+                        reg_read_desc_seen,
+                        reg_write_pending,
+                        reg_read_pending,
+                        reg_write_cmd_valid,
+                        reg_read_cmd_valid,
+                        reg_dma_done,
+                        reg_dma_busy,
+                        write_cmd_ready,
+                        read_cmd_ready
+                    };
                     default: axi_rdata <= 32'd0;
                 endcase
             end else if (s_axil_rready && axi_rvalid) begin

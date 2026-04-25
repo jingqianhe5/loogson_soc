@@ -61,9 +61,9 @@ $(TARGET): $(LINK_OBJS) $(LINK_DEPS) convert Makefile
 	$(LA32R_OBJDUMP) --disassemble-all -S $(OBJDIR)/$@.elf > $(OBJDIR)/$@.s
 	$(OBJDIR)/convert $@.bin $(OBJDIR)/
 	cp ./$(OBJDIR)/axi_ram.mif $(COMMON_DIR)/../../
-	cp ./$(OBJDIR)/axi_ram.mif $(CICIEC_WINDOWS_HOME)/sdk
+	if [ -d "$(CICIEC_WINDOWS_HOME)/sdk" ]; then cp ./$(OBJDIR)/axi_ram.mif $(CICIEC_WINDOWS_HOME)/sdk; fi
 	cp ./$(OBJDIR)/$@.bin $(COMMON_DIR)/../../
-	cp ./$(OBJDIR)/$@.bin $(CICIEC_WINDOWS_HOME)/sdk
+	if [ -d "$(CICIEC_WINDOWS_HOME)/sdk" ]; then cp ./$(OBJDIR)/$@.bin $(CICIEC_WINDOWS_HOME)/sdk; fi
 	rm -f $(LINK_OBJS)
 	rm -f $(OBJDIR)/convert
 
