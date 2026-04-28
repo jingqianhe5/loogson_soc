@@ -25,6 +25,7 @@ static int inited = 0;
 static void DriverKill(void);
 static int DriverInitialize(FCEUGI *gi);
 uint64 FCEUD_GetTime();
+void FCEUD_SetPadState(uint32 state);
 int gametype = 0;
 
 int pal_emulation;
@@ -142,9 +143,26 @@ static void DoFun(int frameskip, int periodic_saves)
 	uint64 emulate_end_ms;
 	uint64 update_end_ms;
 #endif
+#if FCEUX_SERIAL_FPS || FCEUX_AUTO_START_MARIO
+	static uint32 run_frames = 0;
+#endif
+#if FCEUX_SERIAL_FPS
+	static uint32 fps_last_ms = 0;
+	static uint32 fps_core_frames = 0;
+	static uint32 fps_draw_frames = 0;
+#endif
 
 #ifdef FRAMESKIP
 	fskipc = (fskipc + 1) % (frameskip + 1);
+#endif
+
+#if FCEUX_AUTO_START_MARIO
+	{
+		uint32 pad = 0;
+		if (run_frames >= 3 && run_frames < 12) pad |= JOY_START;
+		if (run_frames >= 70) pad |= JOY_RIGHT;
+		FCEUD_SetPadState(pad);
+	}
 #endif
 
 	if(NoWaiting) {
@@ -155,6 +173,21 @@ static void DoFun(int frameskip, int periodic_saves)
 	emulate_end_ms = RuntimeLogNowMs();
 #endif
 	FCEUD_Update(gfx, sound, ssize);
+#if FCEUX_SERIAL_FPS
+	fps_core_frames++;
+	if (gfx) fps_draw_frames++;
+	uint32 now_ms = FCEUD_GetTime();
+	if (fps_last_ms == 0) fps_last_ms = now_ms;
+	if (now_ms - fps_last_ms >= 1000) {
+		printf("FPS core=%u draw=%u skip=%d\n", fps_core_frames, fps_draw_frames, frameskip);
+		fps_last_ms = now_ms;
+		fps_core_frames = 0;
+		fps_draw_frames = 0;
+	}
+#endif
+#if FCEUX_SERIAL_FPS || FCEUX_AUTO_START_MARIO
+	run_frames++;
+#endif
 #if FCEUX_RUNTIME_LOG
 	update_end_ms = RuntimeLogNowMs();
 
@@ -201,6 +234,7 @@ DriverInitialize(FCEUGI *gi)
 #endif
 	inited|=4;
 
+#if !FCEUX_DISABLE_AUDIO
 #if FCEUX_RUNTIME_LOG
   uint64 sound_start = RuntimeLogNowMs();
 #endif
@@ -208,6 +242,7 @@ DriverInitialize(FCEUGI *gi)
     inited|=1;
 #if FCEUX_RUNTIME_LOG
   LogStageCost("InitSound", sound_start);
+#endif
 #endif
 
 	eoptions &= ~EO_FOURSCORE;
@@ -245,6 +280,18 @@ FCEUD_Update(uint8 *XBuf,
 #if FCEUX_RUNTIME_LOG
 			uint64 update_start_ms = RuntimeLogNowMs();
 #endif
+#if FCEUX_DISABLE_AUDIO
+			if(XBuf && (inited&4)) {
+				BlitScreen(XBuf);
+			}
+#if !FCEUX_DISABLE_INPUT
+			FCEUD_UpdateInput();
+#endif
+#if FCEUX_RUNTIME_LOG
+			LogStageCost("FCEUD_Update", update_start_ms);
+#endif
+			return;
+#else
 			int ocount = Count;
 			int blitDone = 0;
 		if(Count) {
@@ -308,9 +355,12 @@ FCEUD_Update(uint8 *XBuf,
 				BlitScreen(XBuf);
 			}
 			}
+#if !FCEUX_DISABLE_INPUT
 			FCEUD_UpdateInput();
+#endif
 #if FCEUX_RUNTIME_LOG
 			LogStageCost("FCEUD_Update", update_start_ms);
+#endif
 #endif
 		}
 

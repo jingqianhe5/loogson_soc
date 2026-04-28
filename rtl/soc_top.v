@@ -620,7 +620,7 @@ AXI_top #(
         32'h1F200000,  // M4 confreg
         32'h1F100000,  // M3 DVI
         32'h1F000000,  // M2 uart
-        32'h00000000,  // M1 flash
+        32'h11000000,  // M1 new DVI
         32'h1C000000   // M0 sram
     }),
     .M_ADDR_WIDTH ({
@@ -630,7 +630,7 @@ AXI_top #(
         32'd20,  // M4 1MB
         32'd20,  // M3 1MB
         32'd20,  // M2 1MB
-        32'd23,  // M1 flash 8MB
+        32'd20,  // M1 new DVI 1MB
         32'd23   // M0 8MB
     })
 ) u_AXI_top (
@@ -916,8 +916,33 @@ axi_uart_controller u_axi_uart_controller (
 );
 
 //==================================================
-// 实例化 AXI DVI 控制器 (连接至 S3 端口)
+// 实例化 AXI DVI 控制器 (旧 DVI 连接至 S3，新 DVI 连接至 S1)
 //==================================================
+wire old_video_clk;
+wire old_video_hsync;
+wire old_video_vsync;
+wire old_video_de;
+wire [2:0] old_video_red;
+wire [2:0] old_video_green;
+wire [1:0] old_video_blue;
+
+wire new_video_clk;
+wire new_video_hsync;
+wire new_video_vsync;
+wire new_video_de;
+wire [2:0] new_video_red;
+wire [2:0] new_video_green;
+wire [1:0] new_video_blue;
+wire       new_dvi_enable;
+
+assign video_clk   = new_dvi_enable ? new_video_clk   : old_video_clk;
+assign video_hsync = new_dvi_enable ? new_video_hsync : old_video_hsync;
+assign video_vsync = new_dvi_enable ? new_video_vsync : old_video_vsync;
+assign video_de    = new_dvi_enable ? new_video_de    : old_video_de;
+assign video_red   = new_dvi_enable ? new_video_red   : old_video_red;
+assign video_green = new_dvi_enable ? new_video_green : old_video_green;
+assign video_blue  = new_dvi_enable ? new_video_blue  : old_video_blue;
+
 axi_dvi u_axi_dvi (
     .s_awvalid      (s3_axi_awvalid  ),
     .s_awready      (s3_axi_awready  ),
@@ -954,86 +979,71 @@ axi_dvi u_axi_dvi (
     .s_rid          (s3_axi_rid      ),
     .s_rresp        (s3_axi_rresp    ),
     .s_rlast        (s3_axi_rlast    ),
-    .video_clk      (video_clk       ),
-    .hsync          (video_hsync     ),
-    .vsync          (video_vsync     ),
-    .data_enable    (video_de        ),
-    .video_red      (video_red       ),
-    .video_green    (video_green     ),
-    .video_blue     (video_blue      ),
+    .video_clk      (old_video_clk   ),
+    .hsync          (old_video_hsync ),
+    .vsync          (old_video_vsync ),
+    .data_enable    (old_video_de    ),
+    .video_red      (old_video_red   ),
+    .video_green    (old_video_green ),
+    .video_blue     (old_video_blue  ),
     .aclk           (sys_clk         ),
     .aresetn        (sys_resetn      )
 );
 
 //==================================================
-// 实例化 AXI to AXI-Lite 适配器 (连接至 S1 端口, 用于Flash)
+// 实例化新 DVI 控制器 (连接至 S1 端口)
 //==================================================
-axi_axil_adapter #(
-    .ADDR_WIDTH      (32),
-    .AXI_DATA_WIDTH  (32),
-    .AXI_ID_WIDTH    (6), // 与 Crossbar 输出端口的 ID 位宽保持一致
-    .AXIL_DATA_WIDTH (32)
-) u_axi_axil_adapter_s1 (
-    .clk             (sys_clk        ),
-    .rst             (~sys_resetn    ), // AXI-master IP 常用高电平复位
-
-    // AXI Slave Interface (Connect to S1)
-    .s_axi_awid      (s1_axi_awid    ),
-    .s_axi_awaddr    (s1_axi_awaddr  ),
-    .s_axi_awlen     (s1_axi_awlen   ),
-    .s_axi_awsize    (s1_axi_awsize  ),
-    .s_axi_awburst   (s1_axi_awburst ),
-    .s_axi_awlock    (s1_axi_awlock  ),
-    .s_axi_awcache   (s1_axi_awcache ),
-    .s_axi_awprot    (s1_axi_awprot  ),
-    .s_axi_awvalid   (s1_axi_awvalid ),
-    .s_axi_awready   (s1_axi_awready ),
-    .s_axi_wdata     (s1_axi_wdata   ),
-    .s_axi_wstrb     (s1_axi_wstrb   ),
-    .s_axi_wlast     (s1_axi_wlast   ),
-    .s_axi_wvalid    (s1_axi_wvalid  ),
-    .s_axi_wready    (s1_axi_wready  ),
-    .s_axi_bid       (s1_axi_bid     ),
-    .s_axi_bresp     (s1_axi_bresp   ),
-    .s_axi_bvalid    (s1_axi_bvalid  ),
-    .s_axi_bready    (s1_axi_bready  ),
-    .s_axi_arid      (s1_axi_arid    ),
-    .s_axi_araddr    (s1_axi_araddr  ),
-    .s_axi_arlen     (s1_axi_arlen   ),
-    .s_axi_arsize    (s1_axi_arsize  ),
-    .s_axi_arburst   (s1_axi_arburst ),
-    .s_axi_arlock    (s1_axi_arlock  ),
-    .s_axi_arcache   (s1_axi_arcache ),
-    .s_axi_arprot    (s1_axi_arprot  ),
-    .s_axi_arvalid   (s1_axi_arvalid ),
-    .s_axi_arready   (s1_axi_arready ),
-    .s_axi_rid       (s1_axi_rid     ),
-    .s_axi_rdata     (s1_axi_rdata   ),
-    .s_axi_rresp     (s1_axi_rresp   ),
-    .s_axi_rlast     (s1_axi_rlast   ),
-    .s_axi_rvalid    (s1_axi_rvalid  ),
-    .s_axi_rready    (s1_axi_rready  ),
-
-    // AXI Lite Master Interface
-    .m_axil_awaddr   (s1_axil_awaddr ),
-    .m_axil_awprot   (s1_axil_awprot ),
-    .m_axil_awvalid  (s1_axil_awvalid),
-    .m_axil_awready  (s1_axil_awready),
-    .m_axil_wdata    (s1_axil_wdata  ),
-    .m_axil_wstrb    (s1_axil_wstrb  ),
-    .m_axil_wvalid   (s1_axil_wvalid ),
-    .m_axil_wready   (s1_axil_wready ),
-    .m_axil_bresp    (s1_axil_bresp  ),
-    .m_axil_bvalid   (s1_axil_bvalid ),
-    .m_axil_bready   (s1_axil_bready ),
-    .m_axil_araddr   (s1_axil_araddr ),
-    .m_axil_arprot   (s1_axil_arprot ),
-    .m_axil_arvalid  (s1_axil_arvalid),
-    .m_axil_arready  (s1_axil_arready),
-    .m_axil_rdata    (s1_axil_rdata  ),
-    .m_axil_rresp    (s1_axil_rresp  ),
-    .m_axil_rvalid   (s1_axil_rvalid ),
-    .m_axil_rready   (s1_axil_rready )
+dvi #(
+    .ID_WIDTH       (6)
+) u_new_dvi (
+    .aclk           (sys_clk         ),
+    .aresetn        (sys_resetn      ),
+    .cpu_clk        (cpu_clk         ),
+    .cpu_resetn     (cpu_resetn      ),
+    .s_awid         (s1_axi_awid     ),
+    .s_awaddr       (s1_axi_awaddr   ),
+    .s_awlen        (s1_axi_awlen    ),
+    .s_awsize       (s1_axi_awsize   ),
+    .s_awburst      (s1_axi_awburst  ),
+    .s_awlock       (s1_axi_awlock   ),
+    .s_awcache      (s1_axi_awcache  ),
+    .s_awprot       (s1_axi_awprot   ),
+    .s_awvalid      (s1_axi_awvalid  ),
+    .s_awready      (s1_axi_awready  ),
+    .s_wid          (s1_axi_awid     ),
+    .s_wdata        (s1_axi_wdata    ),
+    .s_wstrb        (s1_axi_wstrb    ),
+    .s_wlast        (s1_axi_wlast    ),
+    .s_wvalid       (s1_axi_wvalid   ),
+    .s_wready       (s1_axi_wready   ),
+    .s_bid          (s1_axi_bid      ),
+    .s_bresp        (s1_axi_bresp    ),
+    .s_bvalid       (s1_axi_bvalid   ),
+    .s_bready       (s1_axi_bready   ),
+    .s_arid         (s1_axi_arid     ),
+    .s_araddr       (s1_axi_araddr   ),
+    .s_arlen        (s1_axi_arlen    ),
+    .s_arsize       (s1_axi_arsize   ),
+    .s_arburst      (s1_axi_arburst  ),
+    .s_arlock       (s1_axi_arlock   ),
+    .s_arcache      (s1_axi_arcache  ),
+    .s_arprot       (s1_axi_arprot   ),
+    .s_arvalid      (s1_axi_arvalid  ),
+    .s_arready      (s1_axi_arready  ),
+    .s_rid          (s1_axi_rid      ),
+    .s_rdata        (s1_axi_rdata    ),
+    .s_rresp        (s1_axi_rresp    ),
+    .s_rlast        (s1_axi_rlast    ),
+    .s_rvalid       (s1_axi_rvalid   ),
+    .s_rready       (s1_axi_rready   ),
+    .video_clk      (new_video_clk   ),
+    .video_hsync    (new_video_hsync ),
+    .video_vsync    (new_video_vsync ),
+    .video_de       (new_video_de    ),
+    .video_red      (new_video_red   ),
+    .video_green    (new_video_green ),
+    .video_blue     (new_video_blue  ),
+    .dvi_enable     (new_dvi_enable  )
 );
 
 //==================================================
@@ -1170,40 +1180,15 @@ axi_axil_adapter #(
     .m_axil_rready   (s7_axil_rready )
 );
 
-//==================================================
-// 实例化 Flash 控制器 (连接至 AXI-Lite S1 端口)
-//==================================================
-flash_axil_wrap u_flash_axil_wrap (
-    .aclk           (sys_clk        ),
-    .aresetn        (sys_resetn     ),
-    .s_awaddr       (s1_axil_awaddr ),
-    .s_awprot       (s1_axil_awprot ),
-    .s_awvalid      (s1_axil_awvalid),
-    .s_awready      (s1_axil_awready),
-    .s_wdata        (s1_axil_wdata  ),
-    .s_wstrb        (s1_axil_wstrb  ),
-    .s_wvalid       (s1_axil_wvalid ),
-    .s_wready       (s1_axil_wready ),
-    .s_bresp        (s1_axil_bresp  ),
-    .s_bvalid       (s1_axil_bvalid ),
-    .s_bready       (s1_axil_bready ),
-    .s_araddr       (s1_axil_araddr ),
-    .s_arprot       (s1_axil_arprot ),
-    .s_arvalid      (s1_axil_arvalid),
-    .s_arready      (s1_axil_arready),
-    .s_rdata        (s1_axil_rdata  ),
-    .s_rresp        (s1_axil_rresp  ),
-    .s_rvalid       (s1_axil_rvalid ),
-    .s_rready       (s1_axil_rready ),
-    .flash_a        (flash_a        ),
-    .flash_d        (flash_d        ),
-    .flash_rp_n     (flash_rp_n     ),
-    .flash_vpen     (flash_vpen     ),
-    .flash_ce_n     (flash_ce_n     ),
-    .flash_oe_n     (flash_oe_n     ),
-    .flash_we_n     (flash_we_n     ),
-    .flash_byte_n   (flash_byte_n   )
-);
+// S1 已改接新 DVI，Flash 外部引脚保持非选通状态。
+assign flash_a      = 23'd0;
+assign flash_d      = 16'hzzzz;
+assign flash_rp_n   = 1'b1;
+assign flash_vpen   = 1'b0;
+assign flash_ce_n   = 1'b1;
+assign flash_oe_n   = 1'b1;
+assign flash_we_n   = 1'b1;
+assign flash_byte_n = 1'b1;
 
 //==================================================
 // 实例化 Confreg (连接至 S4 端口)

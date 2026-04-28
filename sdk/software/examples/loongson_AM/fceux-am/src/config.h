@@ -5,6 +5,17 @@
 #define HAS_GUI
 #define SIZE_OPT
 
+// Fast board profile: draw directly to rtl/ip/new_DVI and remove subsystems
+// that are not needed for the Mario performance run.
+#define FCEUX_USE_NEW_DVI 1
+#define FCEUX_DISABLE_AUDIO 1
+#define FCEUX_DISABLE_INPUT 1
+#define FCEUX_DISABLE_THROTTLE 1
+#define FCEUX_FAST_MARIO_MEMORY 1
+#define FCEUX_SERIAL_FPS 1
+#define FCEUX_AUTO_START_MARIO 1
+#define FCEUX_NEW_DVI_DIFF 1
+
 #define SOUND_NONE 0
 #define SOUND_LQ   1
 #define SOUND_HQ   2
@@ -30,16 +41,21 @@
 # define SOUND_CONFIG SOUND_LQ
 # define FUNC_IDX_MAX256
 #else
-# define NR_FRAMESKIP 2
+# define NR_FRAMESKIP 3
 # define SOUND_CONFIG SOUND_NONE
 # define FUNC_IDX_MAX16
+#endif
+
+#if FCEUX_DISABLE_AUDIO
+# undef SOUND_CONFIG
+# define SOUND_CONFIG SOUND_NONE
 #endif
 
 // 0 = NTSC 60Hz, 1 = PAL 50Hz.
 // On PERF_LOW boards, default to PAL to cut emulation workload by about 16.7%,
 // at the cost of slightly slower game speed for NTSC titles.
 #if PERF_CONFIG == PERF_LOW
-# define FCEUX_DEFAULT_REGION 1
+# define FCEUX_DEFAULT_REGION 0
 #else
 # define FCEUX_DEFAULT_REGION 0
 #endif

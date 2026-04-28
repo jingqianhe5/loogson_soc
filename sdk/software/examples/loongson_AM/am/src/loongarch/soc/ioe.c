@@ -3,6 +3,10 @@
 #include <klib-macros.h>
 #include <string.h>
 
+#ifndef AM_USE_NEW_DVI
+#define AM_USE_NEW_DVI 1
+#endif
+
 void __am_timer_init();
 
 void __am_timer_rtc(AM_TIMER_RTC_T *);
@@ -44,6 +48,8 @@ enum {
   DVI_DMA_DATA = DVI_AXI_BASE + 0x14,
   DVI_FB_SRAM_AXI_BASE = 0x1c400000,
   DVI_FB_SRAM_CPU_BASE = 0xbc400000,
+  NEW_DVI_FB_CPU_BASE = 0xb1000000,
+  NEW_DVI_CTRL_CPU_ADDR = 0xb10ffffc,
 };
 
 static int dvi_draw_fb_idx = 0;
@@ -83,6 +89,38 @@ static inline void dvi_copy_frame_to_shadow(volatile uint32_t *dst, const uint32
   }
   for (; i < words; i++) {
     dst[i] = src[i];
+  }
+}
+
+static inline void new_dvi_enable(void) {
+  outl(NEW_DVI_CTRL_CPU_ADDR, 1);
+  __sync_synchronize();
+}
+
+static inline void new_dvi_copy_words(volatile uint32_t *dst, const uint32_t *src, int words) {
+  int i = 0;
+  for (; i + 8 <= words; i += 8) {
+    dst[i + 0] = src[i + 0];
+    dst[i + 1] = src[i + 1];
+    dst[i + 2] = src[i + 2];
+    dst[i + 3] = src[i + 3];
+    dst[i + 4] = src[i + 4];
+    dst[i + 5] = src[i + 5];
+    dst[i + 6] = src[i + 6];
+    dst[i + 7] = src[i + 7];
+  }
+  for (; i < words; i++) {
+    dst[i] = src[i];
+  }
+}
+
+static inline void new_dvi_fill(uint8_t color) {
+  volatile uint32_t *dst = (volatile uint32_t *)NEW_DVI_FB_CPU_BASE;
+  uint32_t fill = (uint32_t)color | ((uint32_t)color << 8) |
+                  ((uint32_t)color << 16) | ((uint32_t)color << 24);
+  int words = DVI_FB_BYTES / 4;
+  for (int i = 0; i < words; i++) {
+    dst[i] = fill;
   }
 }
 
@@ -157,9 +195,39 @@ static void __am_gpu_config(AM_GPU_CONFIG_T *cfg) {
   cfg->vmemsz = DVI_FB_WIDTH * DVI_FB_HEIGHT;
 }
 static void __am_gpu_status(AM_GPU_STATUS_T *status) {
+#if AM_USE_NEW_DVI
+  status->ready = true;
+#else
   status->ready = (dma_status_read() & DMA_STATUS_BUSY) == 0;
+#endif
 }
 static void __am_gpu_fbdraw(AM_GPU_FBDRAW_T *ctl) {
+#if AM_USE_NEW_DVI
+  if (ctl->sync) return;
+  if (ctl->pixels == NULL || ctl->w <= 0 || ctl->h <= 0) return;
+  if (ctl->x < 0 || ctl->y < 0) return;
+  if (ctl->x >= DVI_FB_WIDTH || ctl->y >= DVI_FB_HEIGHT) return;
+
+  int draw_w = ctl->w;
+  int draw_h = ctl->h;
+  if (ctl->x + draw_w > DVI_FB_WIDTH) draw_w = DVI_FB_WIDTH - ctl->x;
+  if (ctl->y + draw_h > DVI_FB_HEIGHT) draw_h = DVI_FB_HEIGHT - ctl->y;
+  if (draw_w <= 0 || draw_h <= 0) return;
+
+  uint8_t *pixels = (uint8_t *)ctl->pixels;
+  volatile uint8_t *fb = (volatile uint8_t *)NEW_DVI_FB_CPU_BASE;
+  if (ctl->x == 0 && ctl->y == 0 && draw_w == DVI_FB_WIDTH &&
+      draw_h == DVI_FB_HEIGHT && ctl->w == DVI_FB_WIDTH) {
+    new_dvi_copy_words((volatile uint32_t *)fb, (const uint32_t *)pixels, DVI_FB_BYTES / 4);
+    return;
+  }
+  for (int row = 0; row < draw_h; row++) {
+    volatile uint8_t *dst = &fb[(ctl->y + row) * DVI_FB_WIDTH + ctl->x];
+    uint8_t *src = &pixels[row * ctl->w];
+    int col = 0;
+    for (; col < draw_w; col++) dst[col] = src[col];
+  }
+#else
   if (ctl->sync) {
     // 收到同步信号，此时将背板(Cache)上的数据利用 32 位循环一次性全部刷入无缓存显存
     volatile uint32_t *dst = (volatile uint32_t *)dvi_draw_fb_uncached();
@@ -194,6 +262,7 @@ static void __am_gpu_fbdraw(AM_GPU_FBDRAW_T *ctl) {
   for (int row = 0; row < draw_h; row++) {
     memcpy(&g_cached_backbuffer[(ctl->y + row) * DVI_FB_WIDTH + ctl->x], &pixels[row * ctl->w], draw_w);
   }
+#endif
 }
 
 typedef void (*handler_t)(void *buf);
@@ -217,6 +286,12 @@ bool ioe_init() {
   for (int i = 0; i < LENGTH(lut); i++)
     if (!lut[i]) lut[i] = fail;
   __am_timer_init();//初始化定时器
+
+#if AM_USE_NEW_DVI
+  new_dvi_enable();
+  new_dvi_fill(0x00);
+  return true;
+#endif
   
   // 初始化缓存背板
   for (int i = 0; i < DVI_FB_BYTES; i++) {

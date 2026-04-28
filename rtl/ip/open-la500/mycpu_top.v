@@ -1,3 +1,5 @@
+`include "mycpu.h"
+
 module core_top
 #(
 	parameter TLBNUM = 32

@@ -31,7 +31,9 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --------------------------------------------------------------------------------
 ------------------------------------------------------------------------------*/
 
+`ifndef SRAM_Init_File
 `define SRAM_Init_File "../../../../../../sdk/axi_ram.mif"
+`endif
 
 `define USE_CACHE
 

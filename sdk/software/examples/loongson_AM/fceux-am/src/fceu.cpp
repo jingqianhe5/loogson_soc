@@ -273,11 +273,27 @@ void SetWriteHandler(int32 start, int32 end, writefunc func) {
 }
 
 uint8 readb(int32 a) {
+#if FCEUX_FAST_MARIO_MEMORY
+  uint32 A = (uint32)a & 0xFFFF;
+  if (A < 0x2000) return RAM[A & 0x7FF];
+  if (A >= 0x8000) return Page[A >> 11][A];
+  return GetReadHandler(A)(A);
+#else
   return GetReadHandler(a)(a);
+#endif
 }
 
 void writeb(int32 a, uint8 v) {
+#if FCEUX_FAST_MARIO_MEMORY
+  uint32 A = (uint32)a & 0xFFFF;
+  if (A < 0x2000) {
+    RAM[A & 0x7FF] = v;
+    return;
+  }
+  GetWriteHandler(A)(A, v);
+#else
   GetWriteHandler(a)(a, v);
+#endif
 }
 
 uint8 RAM[0x800];
@@ -499,7 +515,10 @@ void FCEUI_Emulate(uint8 **pXBuf, int32 **SoundBuf, int32 *SoundBufSize, int ski
 
 	FCEUPPU_Loop(skip);
 
+  ssize = 0;
+#if !FCEUX_DISABLE_AUDIO
   if (skip != 2) ssize = FlushEmulateSound();  //If skip = 2 we are skipping sound processing
+#endif
 
 	timestampbase += timestamp;
 	timestamp = 0;
@@ -573,7 +592,9 @@ void PowerNES(void) {
 	SetWriteHandler(0x800, 0x1FFF, BRAMH);	//hack for a small speed boost.
 
 	InitializeInput();
+#if !FCEUX_DISABLE_AUDIO
 	FCEUSND_Power();
+#endif
 	FCEUPPU_Power();
 
 	//Have the external game hardware "powered" after the internal NES stuff.  Needed for the NSF code and VS System code.

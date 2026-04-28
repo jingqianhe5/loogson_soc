@@ -28,6 +28,7 @@
 
 #include "../../fceu.h"
 #include "../../driver.h"
+#include "../../config.h"
 
 /** GLOBALS **/
 int NoWaiting = 1;
@@ -86,6 +87,11 @@ static void UpdateGamepad (void);
 
 static uint32 JSreturn = 0;
 static int s_has_keyboard = -1;
+
+void FCEUD_SetPadState(uint32 state)
+{
+	JSreturn = state;
+}
 
 #include "keyscan.h"
 static uint8 g_keyState[256] = {};
@@ -227,6 +233,10 @@ void FCEUD_UpdateInput ()
 {
 	int x;
 	int t = 0;
+
+#if FCEUX_DISABLE_INPUT
+	return;
+#endif
 
 	if (!HasKeyboard()) {
 		return;
