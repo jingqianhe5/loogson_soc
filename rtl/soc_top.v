@@ -89,6 +89,9 @@ wire cpu_clk;
 wire cpu_resetn;
 wire sys_clk;
 wire sys_resetn;
+wire tpu_clk;
+wire tpu_resetn;
+wire pll_locked;
 
 generate if(SIMULATION) begin: sim_clk
     //simulation clk.
@@ -100,6 +103,7 @@ generate if(SIMULATION) begin: sim_clk
 
     assign cpu_clk = clk_sim;
     assign sys_clk = clk;
+    assign tpu_clk = clk_sim;
     rst_sync u_rst_sys(
         .clk(sys_clk),
         .rst_n_in(~reset),
@@ -110,11 +114,17 @@ generate if(SIMULATION) begin: sim_clk
         .rst_n_in(sys_resetn),
         .rst_n_out(cpu_resetn)
     );
+    rst_sync u_rst_tpu(
+        .clk(tpu_clk),
+        .rst_n_in(sys_resetn),
+        .rst_n_out(tpu_resetn)
+    );
 end
 else begin: pll_clk
     clk_pll u_clk_pll(
         .cpu_clk    (cpu_clk),
         .sys_clk    (sys_clk),
+        .clk_out3   (tpu_clk),
         .resetn     (~reset),
         .locked     (pll_locked),
         .clk_in1    (clk)
@@ -128,6 +138,11 @@ else begin: pll_clk
         .clk(cpu_clk),
         .rst_n_in(sys_resetn),
         .rst_n_out(cpu_resetn)
+    );
+    rst_sync u_rst_tpu(
+        .clk(tpu_clk),
+        .rst_n_in(sys_resetn),
+        .rst_n_out(tpu_resetn)
     );
 end
 endgenerate
@@ -621,38 +636,127 @@ wire [31:0] tpu_sys_axi_rdata;  wire [ 3:0] tpu_sys_axi_rid;  wire [ 1:0] tpu_sy
 wire        tpu_busy;
 wire        tpu_done;
 wire        tpu_error;
+wire        tpu_busy_tpu;
+wire        tpu_done_tpu;
+wire        tpu_error_tpu;
 wire [31:0] tpu_pc_current;
 wire [31:0] tpu_last_ins;
 wire [8*16-1:0] tpu_infer_result_data;
 wire [7:0]      tpu_infer_result_valid;
+wire [8*16-1:0] tpu_infer_result_data_tpu;
+wire [7:0]      tpu_infer_result_valid_tpu;
 wire            lacc_tpu_start;
 wire [31:0]     lacc_tpu_start_pc;
 wire            tpu_start_final;
 wire [31:0]     tpu_start_pc_final;
-reg             tpu_start_pending;
-reg [31:0]      tpu_start_pending_pc;
+wire            tpu_cmd_fifo_full;
+wire            tpu_cmd_fifo_empty;
+wire            tpu_cmd_fifo_valid;
+wire            tpu_cmd_fifo_wr_rst_busy;
+wire            tpu_cmd_fifo_rd_rst_busy;
+wire [31:0]     tpu_cmd_fifo_dout;
+reg             lacc_tpu_start_d;
+reg             tpu_cmd_fifo_wr_pending;
+reg [31:0]      tpu_cmd_fifo_din;
 
-localparam [31:0] TPU_INSN_START_PC = 32'h1C00B000;
+wire            tpu_result_fifo_full;
+wire            tpu_result_fifo_empty;
+wire            tpu_result_fifo_valid;
+wire            tpu_result_fifo_wr_rst_busy;
+wire            tpu_result_fifo_rd_rst_busy;
+wire [135:0]    tpu_result_fifo_dout;
+
+reg [1:0]       tpu_busy_sync_cpu;
+reg [1:0]       tpu_done_sync_cpu;
+reg [1:0]       tpu_error_sync_cpu;
+
+wire tpu_cmd_fifo_wr_en =
+    tpu_cmd_fifo_wr_pending && !tpu_cmd_fifo_full && !tpu_cmd_fifo_wr_rst_busy;
+wire tpu_cmd_fifo_rd_en =
+    tpu_cmd_fifo_valid && !tpu_cmd_fifo_rd_rst_busy && !tpu_busy_tpu;
+
+wire tpu_result_fifo_wr_en =
+    (tpu_infer_result_valid_tpu != 8'd0) &&
+    !tpu_result_fifo_full &&
+    !tpu_result_fifo_wr_rst_busy;
+wire tpu_result_fifo_rd_en =
+    tpu_result_fifo_valid && !tpu_result_fifo_rd_rst_busy;
+
 always @(posedge cpu_clk or negedge cpu_resetn) begin
     if (!cpu_resetn) begin
-        tpu_start_pending    <= 1'b0;
-        tpu_start_pending_pc <= TPU_INSN_START_PC;
+        lacc_tpu_start_d       <= 1'b0;
+        tpu_cmd_fifo_wr_pending <= 1'b0;
+        tpu_cmd_fifo_din       <= 32'd0;
     end else begin
-        if (lacc_tpu_start) begin
-            tpu_start_pending    <= 1'b1;
-            tpu_start_pending_pc <= lacc_tpu_start_pc;
-        end else if (tpu_start_pending && tpu_busy) begin
-            tpu_start_pending <= 1'b0;
+        lacc_tpu_start_d <= lacc_tpu_start;
+
+        if (lacc_tpu_start && !lacc_tpu_start_d) begin
+            tpu_cmd_fifo_wr_pending <= 1'b1;
+            tpu_cmd_fifo_din        <= lacc_tpu_start_pc;
+        end else if (tpu_cmd_fifo_wr_en) begin
+            tpu_cmd_fifo_wr_pending <= 1'b0;
         end
     end
 end
-assign tpu_start_final   = tpu_start_pending;
-assign tpu_start_pc_final = tpu_start_pending_pc;
 
-// TPU 主机从 cpu_clk 域跨到 sys_clk 域后再接入 crossbar。
+always @(posedge cpu_clk or negedge cpu_resetn) begin
+    if (!cpu_resetn) begin
+        tpu_busy_sync_cpu  <= 2'b00;
+        tpu_done_sync_cpu  <= 2'b00;
+        tpu_error_sync_cpu <= 2'b00;
+    end else begin
+        tpu_busy_sync_cpu  <= {tpu_busy_sync_cpu[0],  tpu_busy_tpu};
+        tpu_done_sync_cpu  <= {tpu_done_sync_cpu[0],  tpu_done_tpu};
+        tpu_error_sync_cpu <= {tpu_error_sync_cpu[0], tpu_error_tpu};
+    end
+end
+
+assign tpu_busy  = tpu_busy_sync_cpu[1];
+assign tpu_done  = tpu_done_sync_cpu[1];
+assign tpu_error = tpu_error_sync_cpu[1];
+
+assign tpu_start_final    = tpu_cmd_fifo_rd_en;
+assign tpu_start_pc_final = tpu_cmd_fifo_dout;
+
+assign tpu_infer_result_valid =
+    tpu_result_fifo_valid ? tpu_result_fifo_dout[135:128] : 8'd0;
+assign tpu_infer_result_data =
+    tpu_result_fifo_valid ? tpu_result_fifo_dout[127:0] : 128'd0;
+
+tpu_cmd_async_fifo u_tpu_cmd_async_fifo (
+    .rst         (~sys_resetn),
+    .wr_clk      (cpu_clk),
+    .rd_clk      (tpu_clk),
+    .din         (tpu_cmd_fifo_din),
+    .wr_en       (tpu_cmd_fifo_wr_en),
+    .rd_en       (tpu_cmd_fifo_rd_en),
+    .dout        (tpu_cmd_fifo_dout),
+    .full        (tpu_cmd_fifo_full),
+    .empty       (tpu_cmd_fifo_empty),
+    .valid       (tpu_cmd_fifo_valid),
+    .wr_rst_busy (tpu_cmd_fifo_wr_rst_busy),
+    .rd_rst_busy (tpu_cmd_fifo_rd_rst_busy)
+);
+
+tpu_result_async_fifo u_tpu_result_async_fifo (
+    .rst         (~sys_resetn),
+    .wr_clk      (tpu_clk),
+    .rd_clk      (cpu_clk),
+    .din         ({tpu_infer_result_valid_tpu, tpu_infer_result_data_tpu}),
+    .wr_en       (tpu_result_fifo_wr_en),
+    .rd_en       (tpu_result_fifo_rd_en),
+    .dout        (tpu_result_fifo_dout),
+    .full        (tpu_result_fifo_full),
+    .empty       (tpu_result_fifo_empty),
+    .valid       (tpu_result_fifo_valid),
+    .wr_rst_busy (tpu_result_fifo_wr_rst_busy),
+    .rd_rst_busy (tpu_result_fifo_rd_rst_busy)
+);
+
+// TPU 主机从 tpu_clk 域跨到 sys_clk 域后再接入 crossbar。
 Axi_CDC u_tpu_Axi_CDC (
-    .axiInClk       (cpu_clk    ),
-    .axiInRst       (cpu_resetn ),
+    .axiInClk       (tpu_clk    ),
+    .axiInRst       (tpu_resetn ),
     .axiOutClk      (sys_clk    ),
     .axiOutRst      (sys_resetn ),
 
@@ -1532,13 +1636,13 @@ tpu_axi_fetch_top #(
     .SYSTOLIC_ARRAY_WIDTH(8),
     .AXI_ID_WIDTH(4)
 ) u_tpu_axi_fetch_top (
-    .clk                  (cpu_clk),
-    .rst_n                (sys_resetn),
+    .clk                  (tpu_clk),
+    .rst_n                (tpu_resetn),
     .start                (tpu_start_final),
     .start_pc             (tpu_start_pc_final),
-    .busy                 (tpu_busy),
-    .done                 (tpu_done),
-    .error                (tpu_error),
+    .busy                 (tpu_busy_tpu),
+    .done                 (tpu_done_tpu),
+    .error                (tpu_error_tpu),
     .pc_current           (tpu_pc_current),
     .last_ins             (tpu_last_ins),
 
@@ -1579,8 +1683,8 @@ tpu_axi_fetch_top #(
     .m_axi_rvalid         (tpu_axi_rvalid),
     .m_axi_rready         (tpu_axi_rready),
 
-    .infer_result_data    (tpu_infer_result_data),
-    .infer_result_valid   (tpu_infer_result_valid)
+    .infer_result_data    (tpu_infer_result_data_tpu),
+    .infer_result_valid   (tpu_infer_result_valid_tpu)
 );
 
 // --- 例化 ISP 图像处理算法模块 ---

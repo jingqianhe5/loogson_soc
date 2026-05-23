@@ -73,6 +73,7 @@ VINC := \
 # ---- RTL source files ----
 VSRCS := \
   sim_top.v \
+  tpu_async_fifo_models.v \
   $(RTL_ROOT)/soc_top.v \
   $(RTL_ROOT)/ip/rst_sync/rst_sync.v \
   $(RTL_ROOT)/ip/open-la500/mycpu_top.v \
