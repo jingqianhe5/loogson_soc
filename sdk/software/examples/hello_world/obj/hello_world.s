@@ -370,6 +370,7 @@ int main(int argc, char** argv)
 1c000634:	54053c00 	bl	1340(0x53c) # 1c000b70 <printf>
   
 	return 0;
+}
 1c000638:	28803061 	ld.w	$r1,$r3,12(0xc)
 1c00063c:	28802077 	ld.w	$r23,$r3,8(0x8)
 1c000640:	00150004 	move	$r4,$r0

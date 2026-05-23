@@ -366,6 +366,106 @@ uart_tx_monitor u_uart_tx_monitor (
 );
 
 // ================================================================
+// TPU debug monitor, enabled with +tpu-debug
+// ================================================================
+reg tpu_debug_enable;
+integer tpu_fetch_seen;
+integer tpu_wait_print_div;
+reg tpu_lacc_start_prev;
+reg tpu_busy_prev;
+reg [2:0] tpu_state_prev;
+
+initial begin
+    tpu_debug_enable = $test$plusargs("tpu-debug") || $test$plusargs("tpu_debug");
+    tpu_fetch_seen = 0;
+    tpu_wait_print_div = 0;
+    tpu_lacc_start_prev = 1'b0;
+    tpu_busy_prev = 1'b0;
+    tpu_state_prev = 3'd0;
+    if (tpu_debug_enable) begin
+        $display("[tpu_dbg] monitor enabled");
+    end
+end
+
+always @(posedge u_soc_top.cpu_clk) begin
+    if (!u_soc_top.cpu_resetn) begin
+        tpu_fetch_seen <= 0;
+        tpu_wait_print_div <= 0;
+    end else if (tpu_debug_enable) begin
+        if (u_soc_top.lacc_tpu_start && !tpu_lacc_start_prev) begin
+            $display("[tpu_dbg] lacc_start pc=0x%08x busy=%0b done=%0b err=%0b",
+                     u_soc_top.lacc_tpu_start_pc,
+                     u_soc_top.tpu_busy,
+                     u_soc_top.tpu_done,
+                     u_soc_top.tpu_error);
+        end
+
+        if (u_soc_top.tpu_busy && !tpu_busy_prev) begin
+            $display("[tpu_dbg] busy rise pc=0x%08x last=0x%08x",
+                     u_soc_top.tpu_pc_current,
+                     u_soc_top.tpu_last_ins);
+        end
+
+        if (u_soc_top.u_tpu_axi_fetch_top.state != tpu_state_prev) begin
+            $display("[tpu_dbg] state %0d -> %0d pc=0x%08x last=0x%08x",
+                     tpu_state_prev,
+                     u_soc_top.u_tpu_axi_fetch_top.state,
+                     u_soc_top.u_tpu_axi_fetch_top.pc_current,
+                     u_soc_top.u_tpu_axi_fetch_top.last_ins);
+        end
+
+        if (u_soc_top.u_tpu_axi_fetch_top.m_axi_arvalid &&
+            u_soc_top.u_tpu_axi_fetch_top.m_axi_arready) begin
+            $display("[tpu_dbg] ar addr=0x%08x pc=0x%08x state=%0d",
+                     u_soc_top.u_tpu_axi_fetch_top.m_axi_araddr,
+                     u_soc_top.u_tpu_axi_fetch_top.pc_current,
+                     u_soc_top.u_tpu_axi_fetch_top.state);
+        end
+
+        if (u_soc_top.u_tpu_axi_fetch_top.m_axi_rvalid &&
+            u_soc_top.u_tpu_axi_fetch_top.m_axi_rready &&
+            tpu_fetch_seen < 80) begin
+            $display("[tpu_dbg] rdata=0x%08x pc=0x%08x state=%0d",
+                     u_soc_top.u_tpu_axi_fetch_top.m_axi_rdata,
+                     u_soc_top.u_tpu_axi_fetch_top.pc_current,
+                     u_soc_top.u_tpu_axi_fetch_top.state);
+            tpu_fetch_seen <= tpu_fetch_seen + 1;
+        end
+
+        if (u_soc_top.tpu_done || u_soc_top.tpu_error) begin
+            $display("[tpu_dbg] finish busy=%0b done=%0b err=%0b pc=0x%08x last=0x%08x",
+                     u_soc_top.tpu_busy,
+                     u_soc_top.tpu_done,
+                     u_soc_top.tpu_error,
+                     u_soc_top.tpu_pc_current,
+                     u_soc_top.tpu_last_ins);
+        end
+
+        if (u_soc_top.u_tpu_axi_fetch_top.state == 3'd4) begin
+            tpu_wait_print_div <= tpu_wait_print_div + 1;
+            if (tpu_wait_print_div == 0 || (tpu_wait_print_div % 16384) == 0) begin
+                $display("[tpu_dbg] wait type=%0d limit=%0d cnt=%0d seen=%0b sig=%0b weight=%0b vpu=%0b pc=0x%08x last=0x%08x",
+                         u_soc_top.u_tpu_axi_fetch_top.wait_type,
+                         u_soc_top.u_tpu_axi_fetch_top.wait_limit,
+                         u_soc_top.u_tpu_axi_fetch_top.wait_counter,
+                         u_soc_top.u_tpu_axi_fetch_top.wait_seen_valid,
+                         u_soc_top.u_tpu_axi_fetch_top.wait_signal,
+                         u_soc_top.u_tpu_axi_fetch_top.weight_valid_any,
+                         u_soc_top.u_tpu_axi_fetch_top.vpu_valid_any,
+                         u_soc_top.u_tpu_axi_fetch_top.pc_current,
+                         u_soc_top.u_tpu_axi_fetch_top.last_ins);
+            end
+        end else begin
+            tpu_wait_print_div <= 0;
+        end
+
+        tpu_lacc_start_prev <= u_soc_top.lacc_tpu_start;
+        tpu_busy_prev       <= u_soc_top.tpu_busy;
+        tpu_state_prev      <= u_soc_top.u_tpu_axi_fetch_top.state;
+    end
+end
+
+// ================================================================
 // Simulation termination
 // ================================================================
 wire [31:0] wb_pc = u_soc_top.cpu_debug0_wb_pc;

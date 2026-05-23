@@ -223,6 +223,7 @@ wire inst_csrrd;
 wire inst_csrwr;
 wire inst_csrxchg;
 wire inst_ertn;
+wire inst_cpucfg;
 
 wire inst_rdcntid_w;
 wire inst_rdcntvl_w;
@@ -242,6 +243,13 @@ wire inst_dbar;
 wire inst_ibar;
 
 wire inst_nop;
+
+`ifdef HAS_LACC
+// inst[31: 26] = 6'h30
+// inst[25: 22] = op
+// rk rj rd
+wire lacc_req, lacc_valid;
+`endif
 
 wire need_ui5;
 wire need_si12;
@@ -309,11 +317,21 @@ wire        inst_need_rkd;
 wire [31:0] rj_value_forward_es;
 wire [31:0] rkd_value_forward_es;
 
+// difftest
+wire [7:0]  inst_ld_en;
+wire [7:0]  inst_st_en;
+wire        inst_csr_rstat_en;
+
 assign br_bus       = {btb_pre_error_flush,           //32:32
                        btb_pre_error_flush_target     //31:0
                       };
 
-assign ds_to_es_bus = {inst_csr_rstat_en,  // 349:349 for difftest
+assign ds_to_es_bus = {
+                       `ifdef HAS_LACC
+                       ds_inst[22 +: `LACC_OP_WIDTH],
+                       lacc_req,
+                       `endif
+                       inst_csr_rstat_en,  // 349:349 for difftest
                        inst_st_en       ,  // 348:341 for difftest
                        inst_ld_en       ,  // 340:333 for difftest
                        (inst_rdcntvl_w | inst_rdcntvh_w | inst_rdcntid_w), //332:332  for difftest
@@ -484,9 +502,15 @@ assign inst_tlbsrch    = op_31_26_d[6'h01] & op_25_22_d[4'h9] & op_21_20_d[2'h0]
 assign inst_tlbrd      = op_31_26_d[6'h01] & op_25_22_d[4'h9] & op_21_20_d[2'h0] & op_19_15_d[5'h10] & rk_d[5'h0b] & rj_d[5'h00] & rd_d[5'h00];
 assign inst_tlbwr      = op_31_26_d[6'h01] & op_25_22_d[4'h9] & op_21_20_d[2'h0] & op_19_15_d[5'h10] & rk_d[5'h0c] & rj_d[5'h00] & rd_d[5'h00];
 assign inst_tlbfill    = op_31_26_d[6'h01] & op_25_22_d[4'h9] & op_21_20_d[2'h0] & op_19_15_d[5'h10] & rk_d[5'h0d] & rj_d[5'h00] & rd_d[5'h00];
+assign inst_cpucfg     = op_31_26_d[6'h00] & op_25_22_d[4'h0] & op_21_20_d[2'h0] & op_19_15_d[5'h00] & rk_d[5'h1b];
 
 assign inst_valid_cacop = inst_cacop&&(dest[2:0]==3'b0||dest[2:0]==3'b1)&&(dest[4:3]==2'd0||dest[4:3]==2'd1||dest[4:3]==2'd2);
 assign inst_nop = inst_cacop&&((dest[2:0]!=3'b0&&dest[2:0]!=3'b1)||(dest[4:3]==2'd3));
+
+`ifdef HAS_LACC
+    assign lacc_req = ds_inst[31] & ds_inst[30] & ~ds_inst[29] & ~ds_inst[28];
+    assign lacc_valid = ds_inst[22 +: `LACC_OP_WIDTH] < `LACC_OP_SIZE;
+`endif
 
 assign alu_op[ 0] = inst_add_w      | 
                     inst_addi_w     | 
@@ -543,7 +567,11 @@ assign need_si12     =  inst_addi_w     |
                         inst_valid_cacop|
                         inst_preld      ;
 
-assign need_ui12     =  inst_andi | inst_ori | inst_xori;
+assign need_ui12     =  inst_andi | inst_ori | inst_xori
+                        `ifdef HAS_LACC
+                        | lacc_req
+                        `endif
+                        ;
 assign need_si14_pc  =  inst_ll_w | inst_sc_w;
 assign need_si16_pc  =  inst_jirl |
                         inst_beq  | 
@@ -649,7 +677,7 @@ assign {rdcnt_en, rdcnt_result} = ({33{inst_rdcntvl_w}} & {1'b1, timer_64[31: 0]
 assign csr_data      = rdcnt_en  ? rdcnt_result      : 
                        inst_sc_w ? {31'b0, ds_llbit} : rd_csr_data;                      
                                                                         
-assign res_from_csr  = inst_csrrd | inst_csrwr | inst_csrxchg | inst_rdcntid_w | inst_rdcntvh_w | inst_rdcntvl_w | inst_sc_w;
+assign res_from_csr  = inst_csrrd | inst_csrwr | inst_csrxchg | inst_rdcntid_w | inst_rdcntvh_w | inst_rdcntvl_w | inst_sc_w | inst_cpucfg;
 assign csr_we        = inst_csrwr | inst_csrxchg;
 assign csr_mask      = inst_csrxchg;
 
@@ -702,6 +730,9 @@ assign inst_need_rj = inst_add_w      |
                       inst_sc_w       |
                       inst_csrxchg    |
                       inst_valid_cacop|
+                      `ifdef HAS_LACC
+                      lacc_req         |
+                      `endif
                       inst_invtlb     ;
                       
 assign inst_need_rkd = inst_add_w   |
@@ -734,6 +765,9 @@ assign inst_need_rkd = inst_add_w   |
                        inst_sc_w    |
                        inst_csrwr   |
                        inst_csrxchg |
+                       `ifdef HAS_LACC
+                       lacc_req      |
+                       `endif
                        inst_invtlb  ;
 
 
@@ -820,7 +854,7 @@ assign br_target = ({32{inst_beq || inst_bne || inst_bl || inst_b ||
 assign excp     = excp_ipe | inst_syscall | inst_break | ds_excp | excp_ine | has_int;
 assign excp_num = {excp_ipe, excp_ine, inst_break, inst_syscall, ds_excp_num, has_int};
 
-assign rd_csr_addr = csr_idx;
+assign rd_csr_addr = inst_cpucfg ? (rj_value[13:0]+14'h00b0) : csr_idx;
 
 //when cache operate icache, will refetch inst after this inst.
 assign refetch = (inst_tlbwr || inst_tlbfill || inst_tlbrd || inst_invtlb || inst_ibar) && ds_valid;  //this inst will change addr trans 
@@ -894,6 +928,10 @@ assign inst_valid = inst_add_w      |
                     inst_tlbwr      |
                     inst_tlbfill    |
 					inst_nop        |
+                    inst_cpucfg     |
+                    `ifdef HAS_LACC
+                    lacc_req & lacc_valid |
+                    `endif
                     (inst_invtlb && (rd == 5'd0 || 
                                      rd == 5'd1 || 
                                      rd == 5'd2 || 
@@ -954,10 +992,6 @@ assign pipeline_no_empty = es_to_ds_valid || ms_to_ds_valid || ws_to_ds_valid ||
 assign dbar_stall = inst_dbar && pipeline_no_empty;
 assign ibar_stall = inst_ibar && pipeline_no_empty;
 
-// difftest
-wire [7:0]  inst_ld_en;
-wire [7:0]  inst_st_en;
-wire        inst_csr_rstat_en;
 
 // ll ldw ldhu ldh ldbu ldb
 assign inst_ld_en = {2'b0, inst_ll_w, inst_ld_w, inst_ld_hu, inst_ld_h, inst_ld_bu, inst_ld_b};

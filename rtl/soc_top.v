@@ -32,6 +32,7 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ------------------------------------------------------------------------------*/
 
 `include "config.h"
+`include "mycpu.h"
 
 module soc_top #(parameter SIMULATION=1'b0)
 (
@@ -261,6 +262,15 @@ core_top u_core_top (
     .reg_num            (5'b0    ),
     .ws_valid           (   ),
     .rf_rdata           (   ),
+`ifdef HAS_LACC
+    .lacc_tpu_start     (lacc_tpu_start),
+    .lacc_tpu_start_pc  (lacc_tpu_start_pc),
+    .tpu_busy           (tpu_busy),
+    .tpu_done           (tpu_done),
+    .tpu_error          (tpu_error),
+    .tpu_infer_result_data (tpu_infer_result_data),
+    .tpu_infer_result_valid(tpu_infer_result_valid),
+`endif
 
     // Trace Interfaces
     .debug0_wb_pc       (cpu_debug0_wb_pc      ),
@@ -589,30 +599,159 @@ wire [ 1:0] s7_axil_rresp;
 wire        s7_axil_rvalid;
 wire        s7_axil_rready;
 
-// --- DMA AXI Master Interface (接往主机1号口 S1) ---
-wire [31:0] dma_axi_awaddr; wire [ 4:0] dma_axi_awid; wire [ 7:0] dma_axi_awlen; wire [ 2:0] dma_axi_awsize; wire [ 1:0] dma_axi_awburst; wire [ 0:0] dma_axi_awlock; wire [ 3:0] dma_axi_awcache; wire [ 2:0] dma_axi_awprot; wire dma_axi_awvalid; wire dma_axi_awready;
+// --- DMA AXI Master Interface (接往 AXI_top 主机1号口) ---
+wire [31:0] dma_axi_awaddr; wire [ 3:0] dma_axi_awid; wire [ 7:0] dma_axi_awlen; wire [ 2:0] dma_axi_awsize; wire [ 1:0] dma_axi_awburst; wire [ 0:0] dma_axi_awlock; wire [ 3:0] dma_axi_awcache; wire [ 2:0] dma_axi_awprot; wire dma_axi_awvalid; wire dma_axi_awready;
 wire [31:0] dma_axi_wdata;  wire [ 3:0] dma_axi_wstrb; wire        dma_axi_wlast; wire        dma_axi_wvalid; wire        dma_axi_wready;
-wire [ 4:0] dma_axi_bid;    wire [ 1:0] dma_axi_bresp; wire        dma_axi_bvalid; wire        dma_axi_bready;
-wire [31:0] dma_axi_araddr; wire [ 4:0] dma_axi_arid; wire [ 7:0] dma_axi_arlen; wire [ 2:0] dma_axi_arsize; wire [ 1:0] dma_axi_arburst; wire [ 0:0] dma_axi_arlock; wire [ 3:0] dma_axi_arcache; wire [ 2:0] dma_axi_arprot; wire dma_axi_arvalid; wire dma_axi_arready;
-wire [31:0] dma_axi_rdata;  wire [ 4:0] dma_axi_rid;  wire [ 1:0] dma_axi_rresp; wire        dma_axi_rlast;  wire        dma_axi_rvalid; wire        dma_axi_rready;
+wire [ 3:0] dma_axi_bid;    wire [ 1:0] dma_axi_bresp; wire        dma_axi_bvalid; wire        dma_axi_bready;
+wire [31:0] dma_axi_araddr; wire [ 3:0] dma_axi_arid; wire [ 7:0] dma_axi_arlen; wire [ 2:0] dma_axi_arsize; wire [ 1:0] dma_axi_arburst; wire [ 0:0] dma_axi_arlock; wire [ 3:0] dma_axi_arcache; wire [ 2:0] dma_axi_arprot; wire dma_axi_arvalid; wire dma_axi_arready;
+wire [31:0] dma_axi_rdata;  wire [ 3:0] dma_axi_rid;  wire [ 1:0] dma_axi_rresp; wire        dma_axi_rlast;  wire        dma_axi_rvalid; wire        dma_axi_rready;
+
+// --- TPU AXI Master Interface (接往 AXI_top 主机2号口，只读 SRAM 中的 TPU 指令) ---
+wire [31:0] tpu_axi_awaddr; wire [ 3:0] tpu_axi_awid; wire [ 7:0] tpu_axi_awlen; wire [ 2:0] tpu_axi_awsize; wire [ 1:0] tpu_axi_awburst; wire [ 0:0] tpu_axi_awlock; wire [ 3:0] tpu_axi_awcache; wire [ 2:0] tpu_axi_awprot; wire tpu_axi_awvalid; wire tpu_axi_awready;
+wire [31:0] tpu_axi_wdata;  wire [ 3:0] tpu_axi_wstrb; wire        tpu_axi_wlast; wire        tpu_axi_wvalid; wire        tpu_axi_wready;
+wire [ 3:0] tpu_axi_bid;    wire [ 1:0] tpu_axi_bresp; wire        tpu_axi_bvalid; wire        tpu_axi_bready;
+wire [31:0] tpu_axi_araddr; wire [ 3:0] tpu_axi_arid; wire [ 7:0] tpu_axi_arlen; wire [ 2:0] tpu_axi_arsize; wire [ 1:0] tpu_axi_arburst; wire [ 0:0] tpu_axi_arlock; wire [ 3:0] tpu_axi_arcache; wire [ 2:0] tpu_axi_arprot; wire tpu_axi_arvalid; wire tpu_axi_arready;
+wire [31:0] tpu_axi_rdata;  wire [ 3:0] tpu_axi_rid;  wire [ 1:0] tpu_axi_rresp; wire        tpu_axi_rlast;  wire        tpu_axi_rvalid; wire        tpu_axi_rready;
+wire [31:0] tpu_sys_axi_awaddr; wire [ 3:0] tpu_sys_axi_awid; wire [ 7:0] tpu_sys_axi_awlen; wire [ 2:0] tpu_sys_axi_awsize; wire [ 1:0] tpu_sys_axi_awburst; wire [ 0:0] tpu_sys_axi_awlock; wire [ 3:0] tpu_sys_axi_awcache; wire [ 2:0] tpu_sys_axi_awprot; wire tpu_sys_axi_awvalid; wire tpu_sys_axi_awready;
+wire [31:0] tpu_sys_axi_wdata;  wire [ 3:0] tpu_sys_axi_wstrb; wire        tpu_sys_axi_wlast; wire        tpu_sys_axi_wvalid; wire        tpu_sys_axi_wready;
+wire [ 3:0] tpu_sys_axi_bid;    wire [ 1:0] tpu_sys_axi_bresp; wire        tpu_sys_axi_bvalid; wire        tpu_sys_axi_bready;
+wire [31:0] tpu_sys_axi_araddr; wire [ 3:0] tpu_sys_axi_arid; wire [ 7:0] tpu_sys_axi_arlen; wire [ 2:0] tpu_sys_axi_arsize; wire [ 1:0] tpu_sys_axi_arburst; wire [ 0:0] tpu_sys_axi_arlock; wire [ 3:0] tpu_sys_axi_arcache; wire [ 2:0] tpu_sys_axi_arprot; wire tpu_sys_axi_arvalid; wire tpu_sys_axi_arready;
+wire [31:0] tpu_sys_axi_rdata;  wire [ 3:0] tpu_sys_axi_rid;  wire [ 1:0] tpu_sys_axi_rresp; wire        tpu_sys_axi_rlast;  wire        tpu_sys_axi_rvalid; wire        tpu_sys_axi_rready;
+
+wire        tpu_busy;
+wire        tpu_done;
+wire        tpu_error;
+wire [31:0] tpu_pc_current;
+wire [31:0] tpu_last_ins;
+wire [8*16-1:0] tpu_infer_result_data;
+wire [7:0]      tpu_infer_result_valid;
+wire            lacc_tpu_start;
+wire [31:0]     lacc_tpu_start_pc;
+wire            tpu_start_final;
+wire [31:0]     tpu_start_pc_final;
+reg             tpu_start_pending;
+reg [31:0]      tpu_start_pending_pc;
+
+localparam [31:0] TPU_INSN_START_PC = 32'h1C00B000;
+always @(posedge cpu_clk or negedge cpu_resetn) begin
+    if (!cpu_resetn) begin
+        tpu_start_pending    <= 1'b0;
+        tpu_start_pending_pc <= TPU_INSN_START_PC;
+    end else begin
+        if (lacc_tpu_start) begin
+            tpu_start_pending    <= 1'b1;
+            tpu_start_pending_pc <= lacc_tpu_start_pc;
+        end else if (tpu_start_pending && tpu_busy) begin
+            tpu_start_pending <= 1'b0;
+        end
+    end
+end
+assign tpu_start_final   = tpu_start_pending;
+assign tpu_start_pc_final = tpu_start_pending_pc;
+
+// TPU 主机从 cpu_clk 域跨到 sys_clk 域后再接入 crossbar。
+Axi_CDC u_tpu_Axi_CDC (
+    .axiInClk       (cpu_clk    ),
+    .axiInRst       (cpu_resetn ),
+    .axiOutClk      (sys_clk    ),
+    .axiOutRst      (sys_resetn ),
+
+    .axiIn_awvalid  (tpu_axi_awvalid),
+    .axiIn_awready  (tpu_axi_awready),
+    .axiIn_awaddr   (tpu_axi_awaddr ),
+    .axiIn_awid     (tpu_axi_awid   ),
+    .axiIn_awlen    (tpu_axi_awlen  ),
+    .axiIn_awsize   (tpu_axi_awsize ),
+    .axiIn_awburst  (tpu_axi_awburst),
+    .axiIn_awlock   (tpu_axi_awlock[0]),
+    .axiIn_awcache  (tpu_axi_awcache),
+    .axiIn_awprot   (tpu_axi_awprot ),
+    .axiOut_awvalid (tpu_sys_axi_awvalid),
+    .axiOut_awready (tpu_sys_axi_awready),
+    .axiOut_awaddr  (tpu_sys_axi_awaddr ),
+    .axiOut_awid    (tpu_sys_axi_awid   ),
+    .axiOut_awlen   (tpu_sys_axi_awlen  ),
+    .axiOut_awsize  (tpu_sys_axi_awsize ),
+    .axiOut_awburst (tpu_sys_axi_awburst),
+    .axiOut_awlock  (tpu_sys_axi_awlock ),
+    .axiOut_awcache (tpu_sys_axi_awcache),
+    .axiOut_awprot  (tpu_sys_axi_awprot ),
+
+    .axiIn_wvalid   (tpu_axi_wvalid ),
+    .axiIn_wready   (tpu_axi_wready ),
+    .axiIn_wdata    (tpu_axi_wdata  ),
+    .axiIn_wstrb    (tpu_axi_wstrb  ),
+    .axiIn_wlast    (tpu_axi_wlast  ),
+    .axiOut_wvalid  (tpu_sys_axi_wvalid),
+    .axiOut_wready  (tpu_sys_axi_wready),
+    .axiOut_wdata   (tpu_sys_axi_wdata ),
+    .axiOut_wstrb   (tpu_sys_axi_wstrb ),
+    .axiOut_wlast   (tpu_sys_axi_wlast ),
+
+    .axiOut_bvalid  (tpu_sys_axi_bvalid),
+    .axiOut_bready  (tpu_sys_axi_bready),
+    .axiOut_bid     (tpu_sys_axi_bid   ),
+    .axiOut_bresp   (tpu_sys_axi_bresp  ),
+    .axiIn_bvalid   (tpu_axi_bvalid ),
+    .axiIn_bready   (tpu_axi_bready ),
+    .axiIn_bid      (tpu_axi_bid    ),
+    .axiIn_bresp    (tpu_axi_bresp   ),
+
+    .axiIn_arvalid  (tpu_axi_arvalid),
+    .axiIn_arready  (tpu_axi_arready),
+    .axiIn_araddr   (tpu_axi_araddr ),
+    .axiIn_arid     (tpu_axi_arid   ),
+    .axiIn_arlen    (tpu_axi_arlen  ),
+    .axiIn_arsize   (tpu_axi_arsize ),
+    .axiIn_arburst  (tpu_axi_arburst),
+    .axiIn_arlock   (tpu_axi_arlock[0]),
+    .axiIn_arcache  (tpu_axi_arcache),
+    .axiIn_arprot   (tpu_axi_arprot ),
+    .axiOut_arvalid (tpu_sys_axi_arvalid),
+    .axiOut_arready (tpu_sys_axi_arready),
+    .axiOut_araddr  (tpu_sys_axi_araddr ),
+    .axiOut_arid    (tpu_sys_axi_arid   ),
+    .axiOut_arlen   (tpu_sys_axi_arlen  ),
+    .axiOut_arsize  (tpu_sys_axi_arsize ),
+    .axiOut_arburst (tpu_sys_axi_arburst),
+    .axiOut_arlock  (tpu_sys_axi_arlock ),
+    .axiOut_arcache (tpu_sys_axi_arcache),
+    .axiOut_arprot  (tpu_sys_axi_arprot ),
+
+    .axiOut_rvalid  (tpu_sys_axi_rvalid),
+    .axiOut_rready  (tpu_sys_axi_rready),
+    .axiOut_rdata   (tpu_sys_axi_rdata ),
+    .axiOut_rid     (tpu_sys_axi_rid    ),
+    .axiOut_rresp   (tpu_sys_axi_rresp  ),
+    .axiOut_rlast   (tpu_sys_axi_rlast  ),
+    .axiIn_rvalid   (tpu_axi_rvalid ),
+    .axiIn_rready   (tpu_axi_rready ),
+    .axiIn_rdata    (tpu_axi_rdata  ),
+    .axiIn_rid      (tpu_axi_rid    ),
+    .axiIn_rresp    (tpu_axi_rresp   ),
+    .axiIn_rlast    (tpu_axi_rlast   )
+);
 
 //==================================================
-// 实例化 AXI Crossbar 2x8
-// 将 SYS 和 DMA 域的 AXI 接口分发至最多 8 个从设备
+// 实例化 AXI Crossbar 3x8
+// 将 SYS、DMA、TPU 三个 AXI 主机分发至最多 8 个从设备。
+// S_ID_WIDTH=4 且 S_COUNT=3 时，从设备侧 ID 位宽为 4+$clog2(3)=6。
 //==================================================
-wire [9:0] axi_top_s_bid;
-wire [9:0] axi_top_s_rid;
+wire [11:0] axi_top_s_bid;
+wire [11:0] axi_top_s_rid;
 assign sys_bid = axi_top_s_bid[3:0];
 assign sys_rid = axi_top_s_rid[3:0];
-assign dma_axi_bid = axi_top_s_bid[9:5];
-assign dma_axi_rid = axi_top_s_rid[9:5];
+assign dma_axi_bid = axi_top_s_bid[7:4];
+assign dma_axi_rid = axi_top_s_rid[7:4];
+assign tpu_axi_bid = axi_top_s_bid[11:8];
+assign tpu_axi_rid = axi_top_s_rid[11:8];
 
 AXI_top #(
-    .S_COUNT(2),
+    .S_COUNT(3),
     .M_COUNT(8),
     .DATA_WIDTH(32),
     .ADDR_WIDTH(32),
-    .S_ID_WIDTH(5),
+    .S_ID_WIDTH(4),
     .M_BASE_ADDR ({
         32'h1F500000,  // M7 isp
         32'h1F400000,  // M6 FFT
@@ -638,54 +777,54 @@ AXI_top #(
     .rst           (~sys_resetn),
 
     // ---------------------------------------------------------
-    // AXI Input from CDC (sys_ domain) and DMA (dma_ domain)
+    // AXI Input from CDC (sys_ domain), DMA, and TPU fetch master
     // ---------------------------------------------------------
-    .s_axi_awid    ( {dma_axi_awid,    1'b0, sys_awid} ),
-    .s_axi_awaddr  ( {dma_axi_awaddr,  sys_awaddr}     ),
-    .s_axi_awlen   ( {dma_axi_awlen,   sys_awlen}      ),
-    .s_axi_awsize  ( {dma_axi_awsize,  sys_awsize}     ),
-    .s_axi_awburst ( {dma_axi_awburst, sys_awburst}    ),
-    .s_axi_awlock  ( {dma_axi_awlock,  sys_awlock}     ),
-    .s_axi_awcache ( {dma_axi_awcache, sys_awcache}    ),
-    .s_axi_awprot  ( {dma_axi_awprot,  sys_awprot}     ),
-    .s_axi_awqos   ( {4'd0,            4'd0}           ),
-    .s_axi_awuser  ( {1'b0,            1'b0}           ),
-    .s_axi_awvalid ( {dma_axi_awvalid, sys_awvalid}    ),
-    .s_axi_awready ( {dma_axi_awready, sys_awready}    ),
+    .s_axi_awid    ( {tpu_sys_axi_awid,    dma_axi_awid,    sys_awid} ),
+    .s_axi_awaddr  ( {tpu_sys_axi_awaddr,  dma_axi_awaddr,  sys_awaddr}     ),
+    .s_axi_awlen   ( {tpu_sys_axi_awlen,   dma_axi_awlen,   sys_awlen}      ),
+    .s_axi_awsize  ( {tpu_sys_axi_awsize,  dma_axi_awsize,  sys_awsize}     ),
+    .s_axi_awburst ( {tpu_sys_axi_awburst, dma_axi_awburst, sys_awburst}    ),
+    .s_axi_awlock  ( {tpu_sys_axi_awlock,  dma_axi_awlock,  sys_awlock}     ),
+    .s_axi_awcache ( {tpu_sys_axi_awcache, dma_axi_awcache, sys_awcache}    ),
+    .s_axi_awprot  ( {tpu_sys_axi_awprot,  dma_axi_awprot,  sys_awprot}     ),
+    .s_axi_awqos   ( {4'd0,            4'd0,            4'd0}           ),
+    .s_axi_awuser  ( {1'b0,            1'b0,            1'b0}           ),
+    .s_axi_awvalid ( {tpu_sys_axi_awvalid, dma_axi_awvalid, sys_awvalid}    ),
+    .s_axi_awready ( {tpu_sys_axi_awready, dma_axi_awready, sys_awready}    ),
     
-    .s_axi_wdata   ( {dma_axi_wdata,   sys_wdata}      ),
-    .s_axi_wstrb   ( {dma_axi_wstrb,   sys_wstrb}      ),
-    .s_axi_wlast   ( {dma_axi_wlast,   sys_wlast}      ),
-    .s_axi_wuser   ( {1'b0,            1'b0}           ),
-    .s_axi_wvalid  ( {dma_axi_wvalid,  sys_wvalid}     ),
-    .s_axi_wready  ( {dma_axi_wready,  sys_wready}     ),
+    .s_axi_wdata   ( {tpu_sys_axi_wdata,   dma_axi_wdata,   sys_wdata}      ),
+    .s_axi_wstrb   ( {tpu_sys_axi_wstrb,   dma_axi_wstrb,   sys_wstrb}      ),
+    .s_axi_wlast   ( {tpu_sys_axi_wlast,   dma_axi_wlast,   sys_wlast}      ),
+    .s_axi_wuser   ( {1'b0,            1'b0,            1'b0}           ),
+    .s_axi_wvalid  ( {tpu_sys_axi_wvalid,  dma_axi_wvalid,  sys_wvalid}     ),
+    .s_axi_wready  ( {tpu_sys_axi_wready,  dma_axi_wready,  sys_wready}     ),
     
     .s_axi_bid     ( axi_top_s_bid                     ),
-    .s_axi_bresp   ( {dma_axi_bresp,   sys_bresp}      ),
+    .s_axi_bresp   ( {tpu_sys_axi_bresp,   dma_axi_bresp,   sys_bresp}      ),
     .s_axi_buser   (                                   ),
-    .s_axi_bvalid  ( {dma_axi_bvalid,  sys_bvalid}     ),
-    .s_axi_bready  ( {dma_axi_bready,  sys_bready}     ),
+    .s_axi_bvalid  ( {tpu_sys_axi_bvalid,  dma_axi_bvalid,  sys_bvalid}     ),
+    .s_axi_bready  ( {tpu_sys_axi_bready,  dma_axi_bready,  sys_bready}     ),
     
-    .s_axi_arid    ( {dma_axi_arid,    1'b0, sys_arid} ),
-    .s_axi_araddr  ( {dma_axi_araddr,  sys_araddr}     ),
-    .s_axi_arlen   ( {dma_axi_arlen,   sys_arlen}      ),
-    .s_axi_arsize  ( {dma_axi_arsize,  sys_arsize}     ),
-    .s_axi_arburst ( {dma_axi_arburst, sys_arburst}    ),
-    .s_axi_arlock  ( {dma_axi_arlock,  sys_arlock}     ),
-    .s_axi_arcache ( {dma_axi_arcache, sys_arcache}    ),
-    .s_axi_arprot  ( {dma_axi_arprot,  sys_arprot}     ),
-    .s_axi_arqos   ( {4'd0,            4'd0}           ),
-    .s_axi_aruser  ( {1'b0,            1'b0}           ),
-    .s_axi_arvalid ( {dma_axi_arvalid, sys_arvalid}    ),
-    .s_axi_arready ( {dma_axi_arready, sys_arready}    ),
+    .s_axi_arid    ( {tpu_sys_axi_arid,    dma_axi_arid,    sys_arid} ),
+    .s_axi_araddr  ( {tpu_sys_axi_araddr,  dma_axi_araddr,  sys_araddr}     ),
+    .s_axi_arlen   ( {tpu_sys_axi_arlen,   dma_axi_arlen,   sys_arlen}      ),
+    .s_axi_arsize  ( {tpu_sys_axi_arsize,  dma_axi_arsize,  sys_arsize}     ),
+    .s_axi_arburst ( {tpu_sys_axi_arburst, dma_axi_arburst, sys_arburst}    ),
+    .s_axi_arlock  ( {tpu_sys_axi_arlock,  dma_axi_arlock,  sys_arlock}     ),
+    .s_axi_arcache ( {tpu_sys_axi_arcache, dma_axi_arcache, sys_arcache}    ),
+    .s_axi_arprot  ( {tpu_sys_axi_arprot,  dma_axi_arprot,  sys_arprot}     ),
+    .s_axi_arqos   ( {4'd0,            4'd0,            4'd0}           ),
+    .s_axi_aruser  ( {1'b0,            1'b0,            1'b0}           ),
+    .s_axi_arvalid ( {tpu_sys_axi_arvalid, dma_axi_arvalid, sys_arvalid}    ),
+    .s_axi_arready ( {tpu_sys_axi_arready, dma_axi_arready, sys_arready}    ),
     
     .s_axi_rid     ( axi_top_s_rid                     ),
-    .s_axi_rdata   ( {dma_axi_rdata,   sys_rdata}      ),
-    .s_axi_rresp   ( {dma_axi_rresp,   sys_rresp}      ),
-    .s_axi_rlast   ( {dma_axi_rlast,   sys_rlast}      ),
+    .s_axi_rdata   ( {tpu_sys_axi_rdata,   dma_axi_rdata,   sys_rdata}      ),
+    .s_axi_rresp   ( {tpu_sys_axi_rresp,   dma_axi_rresp,   sys_rresp}      ),
+    .s_axi_rlast   ( {tpu_sys_axi_rlast,   dma_axi_rlast,   sys_rlast}      ),
     .s_axi_ruser   (                                   ),
-    .s_axi_rvalid  ( {dma_axi_rvalid,  sys_rvalid}     ),
-    .s_axi_rready  ( {dma_axi_rready,  sys_rready}     ),
+    .s_axi_rvalid  ( {tpu_sys_axi_rvalid,  dma_axi_rvalid,  sys_rvalid}     ),
+    .s_axi_rready  ( {tpu_sys_axi_rready,  dma_axi_rready,  sys_rready}     ),
 
     // ---------------------------------------------------------
     // AXI Outputs (s0 ~ s7 interfaces)
@@ -1305,7 +1444,7 @@ assign axis_dma_write_tuser  = 1'b0;
 axi_dma #(
     .AXI_DATA_WIDTH(32),
     .AXI_ADDR_WIDTH(32),
-    .AXI_ID_WIDTH(5),   // 匹配 AXI_top 的 S_ID_WIDTH=5
+    .AXI_ID_WIDTH(4),   // 匹配 AXI_top 的 S_ID_WIDTH=4
     .AXIS_DATA_WIDTH(32),
     // 1 beat = 32-bit = 4 pixels, 16-beat burst = 64 pixels
     .AXI_MAX_BURST_LEN(16)
@@ -1384,6 +1523,64 @@ axi_dma #(
     .read_enable   (1'b1),
     .write_enable  (1'b1),
     .write_abort   (1'b0)
+);
+
+// --- 例化 TPU 指令取指主机 ---
+// TPU 指令需要提前放在 SRAM 的 TPU_INSN_START_PC 地址开始处。
+// 上电后这里会自动打一拍启动脉冲，后续也保留 LACC 的显式启动入口。
+tpu_axi_fetch_top #(
+    .SYSTOLIC_ARRAY_WIDTH(8),
+    .AXI_ID_WIDTH(4)
+) u_tpu_axi_fetch_top (
+    .clk                  (cpu_clk),
+    .rst_n                (sys_resetn),
+    .start                (tpu_start_final),
+    .start_pc             (tpu_start_pc_final),
+    .busy                 (tpu_busy),
+    .done                 (tpu_done),
+    .error                (tpu_error),
+    .pc_current           (tpu_pc_current),
+    .last_ins             (tpu_last_ins),
+
+    .m_axi_awid           (tpu_axi_awid),
+    .m_axi_awaddr         (tpu_axi_awaddr),
+    .m_axi_awlen          (tpu_axi_awlen),
+    .m_axi_awsize         (tpu_axi_awsize),
+    .m_axi_awburst        (tpu_axi_awburst),
+    .m_axi_awlock         (tpu_axi_awlock),
+    .m_axi_awcache        (tpu_axi_awcache),
+    .m_axi_awprot         (tpu_axi_awprot),
+    .m_axi_awvalid        (tpu_axi_awvalid),
+    .m_axi_awready        (tpu_axi_awready),
+    .m_axi_wdata          (tpu_axi_wdata),
+    .m_axi_wstrb          (tpu_axi_wstrb),
+    .m_axi_wlast          (tpu_axi_wlast),
+    .m_axi_wvalid         (tpu_axi_wvalid),
+    .m_axi_wready         (tpu_axi_wready),
+    .m_axi_bid            (tpu_axi_bid),
+    .m_axi_bresp          (tpu_axi_bresp),
+    .m_axi_bvalid         (tpu_axi_bvalid),
+    .m_axi_bready         (tpu_axi_bready),
+
+    .m_axi_arid           (tpu_axi_arid),
+    .m_axi_araddr         (tpu_axi_araddr),
+    .m_axi_arlen          (tpu_axi_arlen),
+    .m_axi_arsize         (tpu_axi_arsize),
+    .m_axi_arburst        (tpu_axi_arburst),
+    .m_axi_arlock         (tpu_axi_arlock),
+    .m_axi_arcache        (tpu_axi_arcache),
+    .m_axi_arprot         (tpu_axi_arprot),
+    .m_axi_arvalid        (tpu_axi_arvalid),
+    .m_axi_arready        (tpu_axi_arready),
+    .m_axi_rid            (tpu_axi_rid),
+    .m_axi_rdata          (tpu_axi_rdata),
+    .m_axi_rresp          (tpu_axi_rresp),
+    .m_axi_rlast          (tpu_axi_rlast),
+    .m_axi_rvalid         (tpu_axi_rvalid),
+    .m_axi_rready         (tpu_axi_rready),
+
+    .infer_result_data    (tpu_infer_result_data),
+    .infer_result_valid   (tpu_infer_result_valid)
 );
 
 // --- 例化 ISP 图像处理算法模块 ---

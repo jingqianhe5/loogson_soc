@@ -45,6 +45,10 @@ VFLAGS     := --cc --exe --build \
               --x-initial 0 \
               -Wno-STMTDLY \
               -Wno-INITIALDLY \
+              -Wno-BLKLOOPINIT \
+              -Wno-BLKSEQ \
+              -Wno-EOFNEWLINE \
+              -Wno-VARHIDDEN \
               -Wno-MULTIDRIVEN \
               -Wno-UNOPTFLAT \
               -Wno-LATCH \
@@ -90,6 +94,7 @@ VSRCS := \
   $(RTL_ROOT)/ip/open-la500/addr_trans.v \
   $(RTL_ROOT)/ip/open-la500/perf_counter.v \
   $(RTL_ROOT)/ip/open-la500/tools.v \
+  $(RTL_ROOT)/ip/open-la500/lacc_core.v \
   $(RTL_ROOT)/ip/Bus_interconnects/Axi_CDC.v \
   $(RTL_ROOT)/ip/Bus_interconnects/axi2sram_sp_ext.v \
   $(RTL_ROOT)/ip/verilog-axi-master/rtl/AXI_top.v \
@@ -168,7 +173,28 @@ VSRCS := \
   $(RTL_ROOT)/ip/isp/system_top.v \
   $(RTL_ROOT)/ip/isp/uivtc.v \
   $(RTL_ROOT)/ip/isp_config_axil.v \
-  $(RTL_ROOT)/ip/dma_config_axil.v
+  $(RTL_ROOT)/ip/dma_config_axil.v \
+  $(RTL_ROOT)/ip/tpu/tpu_axi_fetch_top.v \
+  $(RTL_ROOT)/ip/tpu/tpu_isa_confreg.v \
+  $(RTL_ROOT)/ip/tpu/decode.v \
+  $(RTL_ROOT)/ip/tpu/tpu.v \
+  $(RTL_ROOT)/ip/tpu/unified_buffer.sv \
+  $(RTL_ROOT)/ip/tpu/gradient_descent.sv \
+  $(RTL_ROOT)/ip/tpu/vpu.v \
+  $(RTL_ROOT)/ip/tpu/systolic.v \
+  $(RTL_ROOT)/ip/tpu/pe.v \
+  $(RTL_ROOT)/ip/tpu/bias_centre.v \
+  $(RTL_ROOT)/ip/tpu/bias_unit.v \
+  $(RTL_ROOT)/ip/tpu/leaky_relu_centre.v \
+  $(RTL_ROOT)/ip/tpu/leaky_relu_unit.v \
+  $(RTL_ROOT)/ip/tpu/loss_centre.v \
+  $(RTL_ROOT)/ip/tpu/loss_unit.v \
+  $(RTL_ROOT)/ip/tpu/leaky_relu_derivative_centre.v \
+  $(RTL_ROOT)/ip/tpu/leaky_relu_derivative_unit.v \
+  $(RTL_ROOT)/ip/tpu/fxp_add.v \
+  $(RTL_ROOT)/ip/tpu/fxp_addsub.v \
+  $(RTL_ROOT)/ip/tpu/fxp_mul.v \
+  $(RTL_ROOT)/ip/tpu/fxp_zoom.v
 
 SIM_EXE := obj_dir/Vsim_top
 

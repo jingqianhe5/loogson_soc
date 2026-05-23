@@ -22,6 +22,22 @@ module exe_stage(
     output [31:0] es_rj_value     ,
     output [31:0] es_rkd_value    ,
     input         div_complete    ,
+`ifdef HAS_LACC
+    output                      es_lacc_req,
+    output [`LACC_OP_WIDTH-1:0] es_lacc_command,
+    input                       lacc_req_ready,
+    input                       lacc_data_valid,
+    input                       lacc_data_read,
+    input [31: 0]               lacc_data_addr,
+    input [31: 0]               lacc_data_wdata,
+    input [1: 0]                lacc_data_size,
+    input                       lacc_rsp_valid,
+    input [31: 0]               lacc_rsp_rdat,
+    output [6: 0]               lacc_req_imm,
+    output                      lacc_flush,
+    input                       data_data_ok,
+    output                      lacc_drsp_valid,
+`endif
     //exception
     input         excp_flush      ,
     input         ertn_flush      ,
@@ -143,7 +159,19 @@ wire [ 7:0] es_inst_ld_en   ;
 wire [ 7:0] es_inst_st_en   ;
 wire        es_csr_rstat_en ;
 
-assign {es_csr_rstat_en  ,  //349:349  for difftest
+wire [2: 0] data_size_pre;
+`ifdef HAS_LACC
+wire lacc_stall;
+wire [3: 0] lacc_data_mask, lacc_data_byte, lacc_data_half;
+wire es_lacc_req_pre;
+`endif
+
+assign {
+        `ifdef HAS_LACC
+        es_lacc_command,
+        es_lacc_req_pre,
+        `endif
+        es_csr_rstat_en  ,  //349:349  for difftest
         es_inst_st_en    ,  //348:341  for difftest
         es_inst_ld_en    ,  //340:333  for difftst
         es_cnt_inst      ,  //332:332  for difftest
@@ -248,7 +276,11 @@ assign es_flush_sign  = excp_flush || ertn_flush || refetch_flush || icacop_flus
 
 assign icacop_inst_stall = icacop_op_en && !icache_unbusy;
 
-assign es_ready_go    = (!div_stall && ((dcache_req_or_inst_en && data_addr_ok) || !(access_mem || dcacop_inst || preld_inst)) && !tlbsrch_stall && !icacop_inst_stall) || excp;
+assign es_ready_go    = (!div_stall && 
+                        `ifdef HAS_LACC
+                        !lacc_stall &&
+                        `endif
+((dcache_req_or_inst_en && data_addr_ok) || !(access_mem || dcacop_inst || preld_inst)) && !tlbsrch_stall && !icacop_inst_stall) || excp;
 assign es_allowin     = !es_valid || es_ready_go && ms_allowin;
 assign es_to_ms_valid =  es_valid && es_ready_go;
 always @(posedge clk) begin
@@ -274,6 +306,13 @@ assign es_mul_enable = es_mul_div_op[0] | es_mul_div_op[1];
 
 assign div_stall     = es_div_enable & ~div_complete;
 
+`ifdef HAS_LACC
+assign lacc_stall       = es_lacc_req & ~lacc_rsp_valid;
+assign es_lacc_req      = es_lacc_req_pre & es_valid;
+assign lacc_req_imm     = es_imm[11: 5];
+assign lacc_drsp_valid  = es_lacc_req & data_data_ok;
+`endif
+
 alu u_alu(
     .alu_op     (es_alu_op    ),
     .alu_src1   (es_alu_src1  ),  //bug3 es_alu_src2
@@ -281,7 +320,10 @@ alu u_alu(
     .alu_result (es_alu_result)
     );
 
-assign exe_result     = es_res_from_csr ? es_csr_data : es_alu_result;
+assign exe_result     = `ifdef HAS_LACC
+                        es_lacc_req ?  lacc_rsp_rdat :
+                        `endif
+                        es_res_from_csr ? es_csr_data : es_alu_result;
 
 //forward path
 assign dest_zero            = (es_dest == 5'b0); 
@@ -313,12 +355,28 @@ assign sram_addr_low2bit = {es_alu_result[1], es_alu_result[0]};
 
 //mem_size[0] byte size   [1] halfword size
 assign dcache_req_or_inst_en = es_valid && !excp && ms_allowin && !es_flush_sign && !ms_flush;
-
+`ifdef HAS_LACC
+assign data_valid = access_mem && dcache_req_or_inst_en || lacc_data_valid;
+assign data_op    = lacc_data_valid ? !lacc_data_read :
+                    es_store_op && !es_cacop && !es_preld;
+decoder_2_4 decoder_lacc_size (lacc_data_addr[1: 0], lacc_data_byte);
+assign lacc_data_half[0] = ~(|lacc_data_addr);
+assign lacc_data_half[1] = ~lacc_data_addr[1];
+assign lacc_data_half[2] = ^lacc_data_addr;
+assign lacc_data_half[3] = lacc_data_addr[1];
+assign lacc_data_mask = lacc_data_size == 2'b00 ? lacc_data_byte :
+                           lacc_data_size == 2'b01 ? lacc_data_half : 4'b1111;
+assign data_wstrb = lacc_data_valid ? lacc_data_mask : wr_byte_en;
+assign data_size = lacc_data_valid ? lacc_data_size : data_size_pre;
+assign data_addr = lacc_data_valid ? lacc_data_addr :
+                    es_tlbsrch ? {csr_vppn, 13'b0} : pv_addr;
+`else
 assign data_valid = access_mem && dcache_req_or_inst_en;
 assign data_op    = es_store_op && !es_cacop && !es_preld;
 assign data_wstrb = wr_byte_en;
-
+assign data_size = data_size_pre;
 assign data_addr = es_tlbsrch ? {csr_vppn, 13'b0} : pv_addr;
+`endif
 
 wire [3:0] es_stb_wen = { sram_addr_low2bit==2'b11  ,
                           sram_addr_low2bit==2'b10  ,
@@ -338,12 +396,16 @@ wire [31:0] es_stb_cont = { {8{es_stb_wen[3]}} & es_rkd_value[7:0] ,
 wire [31:0] es_sth_cont = { {16{es_sth_wen[3]}} & es_rkd_value[15:0] ,
                             {16{es_sth_wen[0]}} & es_rkd_value[15:0]};
 
-assign {wr_byte_en, data_size}  = ({7{es_mem_size[0]}} & {es_stb_wen, 3'b00}) |
-                                  ({7{es_mem_size[1]}} & {es_sth_wen, 3'b01}) |
-                                  ({7{!es_mem_size  }} & {4'b1111   , 3'b10}) ;
+assign {wr_byte_en, data_size_pre}  = ({7{es_mem_size[0]}} & {es_stb_wen, 3'b00}) |
+                                      ({7{es_mem_size[1]}} & {es_sth_wen, 3'b01}) |
+                                      ({7{!es_mem_size  }} & {4'b1111   , 3'b10}) ;
 
 //assign data_wdata = es_rkd_value; 
-assign data_wdata = ({32{es_mem_size[0]}} & es_stb_cont ) |
+assign data_wdata = 
+                    `ifdef HAS_LACC
+                    lacc_data_valid ? lacc_data_wdata :
+                    `endif
+                    ({32{es_mem_size[0]}} & es_stb_cont ) |
                     ({32{es_mem_size[1]}} & es_sth_cont ) |
                     ({32{!es_mem_size  }} & es_rkd_value) ; 
 
@@ -368,6 +430,10 @@ assign preld_hint = es_dest;
 assign preld_inst = es_preld && ((preld_hint == 5'd0) || (preld_hint == 5'd8))/* && !data_uncache_en*/; //preld must have bug
 assign preld_en   = preld_inst && dcache_req_or_inst_en; 
 
-assign data_fetch = (data_valid || dcacop_inst || preld_en) && data_addr_ok || ((icacop_inst || es_tlbsrch) && es_ready_go && ms_allowin);
+assign data_fetch = (data_valid || dcacop_inst || preld_en) && data_addr_ok || ((icacop_inst || es_tlbsrch) && es_ready_go && ms_allowin)
+                    `ifdef HAS_LACC
+                    || lacc_data_valid
+                    `endif
+;
 
 endmodule

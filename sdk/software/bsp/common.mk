@@ -60,10 +60,13 @@ $(TARGET): $(LINK_OBJS) $(LINK_DEPS) convert Makefile
 	$(LA32R_OBJCOPY) -O binary $(OBJDIR)/$@.elf $(OBJDIR)/$@.bin
 	$(LA32R_OBJDUMP) --disassemble-all -S $(OBJDIR)/$@.elf > $(OBJDIR)/$@.s
 	$(OBJDIR)/convert $@.bin $(OBJDIR)/
+	@$(if $(strip $(POST_IMAGE_CMD)),$(POST_IMAGE_CMD),:)
 	cp ./$(OBJDIR)/axi_ram.mif $(COMMON_DIR)/../../
 	if [ -d "$(CICIEC_WINDOWS_HOME)/sdk" ]; then cp ./$(OBJDIR)/axi_ram.mif $(CICIEC_WINDOWS_HOME)/sdk; fi
 	cp ./$(OBJDIR)/$@.bin $(COMMON_DIR)/../../
 	if [ -d "$(CICIEC_WINDOWS_HOME)/sdk" ]; then cp ./$(OBJDIR)/$@.bin $(CICIEC_WINDOWS_HOME)/sdk; fi
+	if [ -f ./$(OBJDIR)/$@_full.bin ]; then cp ./$(OBJDIR)/$@_full.bin $(COMMON_DIR)/../../; fi
+	if [ -d "$(CICIEC_WINDOWS_HOME)/sdk" ] && [ -f ./$(OBJDIR)/$@_full.bin ]; then cp ./$(OBJDIR)/$@_full.bin $(CICIEC_WINDOWS_HOME)/sdk; fi
 	rm -f $(LINK_OBJS)
 	rm -f $(OBJDIR)/convert
 

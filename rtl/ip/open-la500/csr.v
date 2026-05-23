@@ -72,8 +72,10 @@ module csr
     input  [31:0]                   tlbidx_in    ,
     input  [ 9:0]                   asid_in      ,
     //general use
-    output [ 1:0]                   plv_out      ,
+    output [ 1:0]                   plv_out      
     // csr regs for diff
+`ifdef DIFFTEST_EN
+    ,
     output [31:0]                   csr_crmd_diff,
     output [31:0]                   csr_prmd_diff,
     output [31:0]                   csr_ectl_diff,
@@ -100,6 +102,7 @@ module csr
     output [31:0]                   csr_dmw1_diff,
     output [31:0]                   csr_pgdl_diff,
     output [31:0]                   csr_pgdh_diff
+`endif
 );
 
 localparam CRMD  = 14'h0;
@@ -133,6 +136,12 @@ localparam DMW0  = 14'h180;
 localparam DMW1  = 14'h181;
 localparam BRK = 14'h100;
 localparam DISABLE_CACHE = 14'h101;
+localparam CPUCFG_1  = 14'hb1;
+localparam CPUCFG_2  = 14'hb2;
+localparam CPUCFG_10 = 14'hc0;
+localparam CPUCFG_11 = 14'hc1;
+localparam CPUCFG_12 = 14'hc2;
+localparam CPUCFG_13 = 14'hc3;
 
 wire crmd_wen   = csr_wr_en & (wr_addr == CRMD);
 wire prmd_wen   = csr_wr_en & (wr_addr == PRMD);
@@ -196,6 +205,13 @@ reg [31:0] csr_pgdl;
 reg [31:0] csr_pgdh;
 reg [31:0] csr_brk;
 reg [31:0] csr_disable_cache;
+reg [31:0] csr_cpucfg1;
+reg [31:0] csr_cpucfg2;
+reg [31:0] csr_cpucfg10;
+reg [31:0] csr_cpucfg11;
+reg [31:0] csr_cpucfg12;
+reg [31:0] csr_cpucfg13;
+
 
 wire [31:0] csr_pgd;
 
@@ -291,7 +307,13 @@ assign rd_data = {32{rd_addr == CRMD  }}  & csr_crmd    |
                  {32{rd_addr == TVAL  }}  & csr_tval    |
                  {32{rd_addr == TLBRENTRY}} & csr_tlbrentry   |
                  {32{rd_addr == DMW0}}    & csr_dmw0    |
-                 {32{rd_addr == DMW1}}    & csr_dmw1    ;
+                 {32{rd_addr == DMW1}}    & csr_dmw1    |
+                 {32{rd_addr == CPUCFG_1 }}   & csr_cpucfg1    |
+                 {32{rd_addr == CPUCFG_2 }}   & csr_cpucfg2    |
+                 {32{rd_addr == CPUCFG_10 }}  & csr_cpucfg10   |
+                 {32{rd_addr == CPUCFG_11 }}  & csr_cpucfg11   |
+                 {32{rd_addr == CPUCFG_12 }}  & csr_cpucfg12   |
+                 {32{rd_addr == CPUCFG_13 }}  & csr_cpucfg13   ;
 
 //crmd
 always @(posedge clk) begin
@@ -759,7 +781,50 @@ always @(posedge clk) begin
     end
 end
 
+//cpucfg1
+always @(posedge clk) begin
+    if (reset) begin
+        csr_cpucfg1 <= 32'h1f1f4;
+    end 
+end
+
+//cpucfg2
+always @(posedge clk) begin
+    if (reset) begin
+        csr_cpucfg2 <= 32'h0;
+    end 
+end
+
+//cpucfg10
+always @(posedge clk) begin
+    if (reset) begin
+        csr_cpucfg10 <= 32'h5;
+    end 
+end
+
+//cpucfg11
+always @(posedge clk) begin
+    if (reset) begin
+        csr_cpucfg11 <= 32'h04080001;
+    end 
+end
+
+//cpucfg12
+always @(posedge clk) begin
+    if (reset) begin
+        csr_cpucfg12 <= 32'h04080001;
+    end 
+end
+
+//cpucfg13
+always @(posedge clk) begin
+    if (reset) begin
+        csr_cpucfg13 <= 32'h0;
+    end 
+end
+
 // difftest
+`ifdef DIFFTEST_EN
 assign csr_crmd_diff        = csr_crmd;
 assign csr_prmd_diff        = csr_prmd;
 assign csr_ectl_diff        = csr_ectl;
@@ -786,5 +851,6 @@ assign csr_dmw0_diff        = csr_dmw0;
 assign csr_dmw1_diff        = csr_dmw1;
 assign csr_pgdl_diff        = csr_pgdl;
 assign csr_pgdh_diff        = csr_pgdh;
+`endif
 
 endmodule

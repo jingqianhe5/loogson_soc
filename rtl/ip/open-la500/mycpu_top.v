@@ -58,6 +58,16 @@ module core_top
     output          ws_valid,
     output [31:0]   rf_rdata,
 
+`ifdef HAS_LACC
+    output                      lacc_tpu_start,
+    output [31:0]               lacc_tpu_start_pc,
+    input                       tpu_busy,
+    input                       tpu_done,
+    input                       tpu_error,
+    input [8*16-1:0]            tpu_infer_result_data,
+    input [7:0]                 tpu_infer_result_valid,
+`endif
+
     output [31:0] debug0_wb_pc,
     output [ 3:0] debug0_wb_rf_wen,
     output [ 4:0] debug0_wb_rf_wnum,
@@ -273,6 +283,104 @@ wire         fs_icache_miss;
 wire         ms_dcache_miss;
 wire         disable_cache;
 
+`ifdef DIFFTEST_EN
+// difftest
+// from wb_stage
+wire            ws_valid_diff       ;
+wire            cnt_inst_diff       ;
+wire    [63:0]  timer_64_diff       ;
+wire    [ 7:0]  inst_ld_en_diff     ;
+wire    [31:0]  ld_paddr_diff       ;
+wire    [31:0]  ld_vaddr_diff       ;
+wire    [ 7:0]  inst_st_en_diff     ;
+wire    [31:0]  st_paddr_diff       ;
+wire    [31:0]  st_vaddr_diff       ;
+wire    [31:0]  st_data_diff        ;
+wire            csr_rstat_en_diff   ;
+wire    [31:0]  csr_data_diff       ;
+
+wire inst_valid_diff = ws_valid_diff;
+reg             cmt_valid           ;
+reg             cmt_cnt_inst        ;
+reg     [63:0]  cmt_timer_64        ;
+reg     [ 7:0]  cmt_inst_ld_en      ;
+reg     [31:0]  cmt_ld_paddr        ;
+reg     [31:0]  cmt_ld_vaddr        ;
+reg     [ 7:0]  cmt_inst_st_en      ;
+reg     [31:0]  cmt_st_paddr        ;
+reg     [31:0]  cmt_st_vaddr        ;
+reg     [31:0]  cmt_st_data         ;
+reg             cmt_csr_rstat_en    ;
+reg     [31:0]  cmt_csr_data        ;
+
+reg             cmt_wen             ;
+reg     [ 7:0]  cmt_wdest           ;
+reg     [31:0]  cmt_wdata           ;
+reg     [31:0]  cmt_pc              ;
+reg     [31:0]  cmt_inst            ;
+
+reg             cmt_excp_flush      ;
+reg             cmt_ertn            ;
+reg     [5:0]   cmt_csr_ecode       ;
+reg             cmt_tlbfill_en      ;
+reg     [4:0]   cmt_rand_index      ;
+
+// to difftest debug
+reg             trap                ;
+reg     [ 7:0]  trap_code           ;
+reg     [63:0]  cycleCnt            ;
+reg     [63:0]  instrCnt            ;
+
+// from regfile
+wire    [31:0]  regs[31:0]          ;
+
+// from csr
+wire    [31:0]  csr_crmd_diff_0     ;
+wire    [31:0]  csr_prmd_diff_0     ;
+wire    [31:0]  csr_ectl_diff_0     ;
+wire    [31:0]  csr_estat_diff_0    ;
+wire    [31:0]  csr_era_diff_0      ;
+wire    [31:0]  csr_badv_diff_0     ;
+wire	[31:0]  csr_eentry_diff_0   ;
+wire 	[31:0]  csr_tlbidx_diff_0   ;
+wire 	[31:0]  csr_tlbehi_diff_0   ;
+wire 	[31:0]  csr_tlbelo0_diff_0  ;
+wire 	[31:0]  csr_tlbelo1_diff_0  ;
+wire 	[31:0]  csr_asid_diff_0     ;
+wire 	[31:0]  csr_save0_diff_0    ;
+wire 	[31:0]  csr_save1_diff_0    ;
+wire 	[31:0]  csr_save2_diff_0    ;
+wire 	[31:0]  csr_save3_diff_0    ;
+wire 	[31:0]  csr_tid_diff_0      ;
+wire 	[31:0]  csr_tcfg_diff_0     ;
+wire 	[31:0]  csr_tval_diff_0     ;
+wire 	[31:0]  csr_ticlr_diff_0    ;
+wire 	[31:0]  csr_llbctl_diff_0   ;
+wire 	[31:0]  csr_tlbrentry_diff_0;
+wire 	[31:0]  csr_dmw0_diff_0     ;
+wire 	[31:0]  csr_dmw1_diff_0     ;
+wire 	[31:0]  csr_pgdl_diff_0     ;
+wire 	[31:0]  csr_pgdh_diff_0     ;
+`endif
+
+`ifdef HAS_LACC
+wire         es_lacc_req;
+wire [`LACC_OP_WIDTH-1: 0] es_lacc_command;
+wire [31:0]  lacc_req_rj;
+wire [31:0]  lacc_req_rk;
+wire         lacc_rsp_valid;
+wire [31:0]  lacc_rsp_rdat;
+wire         lacc_data_valid;
+wire [31:0]  lacc_data_addr;
+wire         lacc_data_read;
+wire [31:0]  lacc_data_wdata;
+wire [ 1:0]  lacc_data_size;
+wire         lacc_drsp_valid;
+wire [31:0]  lacc_drsp_rdata;
+wire [6: 0]  lacc_req_imm;
+wire         lacc_flush;
+`endif
+
 // IF stage
 if_stage if_stage(
     .clk             (aclk           ),
@@ -429,6 +537,22 @@ exe_stage exe_stage(
     .es_rj_value          (es_rj_value         ),
     .es_rkd_value         (es_rkd_value        ),
     .div_complete         (div_complete        ),
+`ifdef HAS_LACC
+	    .es_lacc_req          (es_lacc_req         ),
+	    .es_lacc_command      (es_lacc_command     ),
+	    .lacc_req_ready       (1'b1                ),
+	    .lacc_data_valid      (lacc_data_valid     ),
+    .lacc_data_read       (lacc_data_read      ),
+    .lacc_data_addr       (lacc_data_addr      ),
+    .lacc_data_wdata      (lacc_data_wdata     ),
+    .lacc_data_size       (lacc_data_size      ),
+    .lacc_rsp_valid       (lacc_rsp_valid      ),
+    .lacc_rsp_rdat        (lacc_rsp_rdat       ),
+    .lacc_flush           (lacc_flush          ),
+    .data_data_ok         (data_data_ok        ),
+    .lacc_drsp_valid      (lacc_drsp_valid     ),
+    .lacc_req_imm         (lacc_req_imm        ),
+`endif
     //exception
     .excp_flush           (excp_flush          ),
     .ertn_flush           (ertn_flush          ),
@@ -484,6 +608,40 @@ mul u_mul(
     .y               (es_rkd_value   ),
     .result          (mul_result     )
     );
+
+`ifdef HAS_LACC
+lacc_core u_lacc_core(
+    .clk             (aclk           ),
+    .reset           (reset          ),
+    .lacc_flush      (lacc_flush     ),
+    .lacc_tpu_start  (lacc_tpu_start ),
+    .lacc_tpu_start_pc(lacc_tpu_start_pc),
+    .tpu_busy        (tpu_busy       ),
+    .tpu_done        (tpu_done       ),
+    .tpu_error       (tpu_error      ),
+    .tpu_result_data (tpu_infer_result_data),
+    .tpu_result_valid(tpu_infer_result_valid),
+
+    .lacc_req_valid  (es_lacc_req    ),
+    .lacc_req_command(es_lacc_command),
+    .lacc_req_rj     (es_rj_value    ),
+    .lacc_req_rk     (es_rkd_value   ),
+    .lacc_req_imm    (lacc_req_imm   ),
+    
+    .lacc_rsp_valid  (lacc_rsp_valid ),
+    .lacc_rsp_rdat   (lacc_rsp_rdat  ),
+
+    .lacc_data_valid (lacc_data_valid ),
+    .lacc_data_ready (data_addr_ok    ),
+    .lacc_data_addr  (lacc_data_addr  ),
+    .lacc_data_read  (lacc_data_read  ),
+    .lacc_data_wdata (lacc_data_wdata ),  
+    .lacc_data_size  (lacc_data_size  ),
+
+    .lacc_drsp_valid (lacc_drsp_valid ),  
+    .lacc_drsp_rdata (data_rdata   )
+    );
+`endif
 
 // MEM stage
 mem_stage mem_stage(
@@ -617,8 +775,9 @@ wb_stage wb_stage(
     .debug_wb_rf_wen   (debug0_wb_rf_wen  ),
     .debug_wb_rf_wnum  (debug0_wb_rf_wnum ),
     .debug_wb_rf_wdata (debug0_wb_rf_wdata),
-    .debug_wb_inst     (debug0_wb_inst    ),
-
+    .debug_wb_inst     (debug0_wb_inst    )
+`ifdef DIFFTEST_EN
+    ,
     .ws_valid_diff      (ws_valid_diff     ),
     .ws_cnt_inst_diff   (cnt_inst_diff     ),
     .ws_timer_64_diff   (timer_64_diff     ),
@@ -631,6 +790,7 @@ wb_stage wb_stage(
     .ws_st_data_diff    (st_data_diff      ),
     .ws_csr_rstat_en_diff (csr_rstat_en_diff    ),
     .ws_csr_data_diff   (csr_data_diff     )
+`endif
 );
 
 csr #(TLBNUM) u_csr(
@@ -700,8 +860,10 @@ csr #(TLBNUM) u_csr(
     .tlbidx_in      (tlbr_tlbidx     ),
     .asid_in        (tlbr_asid       ),
     //general use
-    .plv_out        (csr_plv         ),
+    .plv_out        (csr_plv         )
     //difftest
+`ifdef DIFFTEST_EN
+    ,
     .csr_crmd_diff      (csr_crmd_diff_0    ),
     .csr_prmd_diff      (csr_prmd_diff_0    ),
     .csr_ectl_diff      (csr_ectl_diff_0    ),
@@ -728,6 +890,7 @@ csr #(TLBNUM) u_csr(
     .csr_dmw1_diff      (csr_dmw1_diff_0    ),
     .csr_pgdl_diff      (csr_pgdl_diff_0    ),
     .csr_pgdh_diff      (csr_pgdh_diff_0    )
+`endif
 );
 
 axi_bridge axi_bridge(
@@ -984,84 +1147,6 @@ perf_counter perf_counter(
 );
 
 `ifdef DIFFTEST_EN
-// difftest
-// from wb_stage
-wire            ws_valid_diff       ;
-wire            cnt_inst_diff       ;
-wire    [63:0]  timer_64_diff       ;
-wire    [ 7:0]  inst_ld_en_diff     ;
-wire    [31:0]  ld_paddr_diff       ;
-wire    [31:0]  ld_vaddr_diff       ;
-wire    [ 7:0]  inst_st_en_diff     ;
-wire    [31:0]  st_paddr_diff       ;
-wire    [31:0]  st_vaddr_diff       ;
-wire    [31:0]  st_data_diff        ;
-wire            csr_rstat_en_diff   ;
-wire    [31:0]  csr_data_diff       ;
-
-wire inst_valid_diff = ws_valid_diff;
-reg             cmt_valid           ;
-reg             cmt_cnt_inst        ;
-reg     [63:0]  cmt_timer_64        ;
-reg     [ 7:0]  cmt_inst_ld_en      ;
-reg     [31:0]  cmt_ld_paddr        ;
-reg     [31:0]  cmt_ld_vaddr        ;
-reg     [ 7:0]  cmt_inst_st_en      ;
-reg     [31:0]  cmt_st_paddr        ;
-reg     [31:0]  cmt_st_vaddr        ;
-reg     [31:0]  cmt_st_data         ;
-reg             cmt_csr_rstat_en    ;
-reg     [31:0]  cmt_csr_data        ;
-
-reg             cmt_wen             ;
-reg     [ 7:0]  cmt_wdest           ;
-reg     [31:0]  cmt_wdata           ;
-reg     [31:0]  cmt_pc              ;
-reg     [31:0]  cmt_inst            ;
-
-reg             cmt_excp_flush      ;
-reg             cmt_ertn            ;
-reg     [5:0]   cmt_csr_ecode       ;
-reg             cmt_tlbfill_en      ;
-reg     [4:0]   cmt_rand_index      ;
-
-// to difftest debug
-reg             trap                ;
-reg     [ 7:0]  trap_code           ;
-reg     [63:0]  cycleCnt            ;
-reg     [63:0]  instrCnt            ;
-
-// from regfile
-wire    [31:0]  regs[31:0]          ;
-
-// from csr
-wire    [31:0]  csr_crmd_diff_0     ;
-wire    [31:0]  csr_prmd_diff_0     ;
-wire    [31:0]  csr_ectl_diff_0     ;
-wire    [31:0]  csr_estat_diff_0    ;
-wire    [31:0]  csr_era_diff_0      ;
-wire    [31:0]  csr_badv_diff_0     ;
-wire	[31:0]  csr_eentry_diff_0   ;
-wire 	[31:0]  csr_tlbidx_diff_0   ;
-wire 	[31:0]  csr_tlbehi_diff_0   ;
-wire 	[31:0]  csr_tlbelo0_diff_0  ;
-wire 	[31:0]  csr_tlbelo1_diff_0  ;
-wire 	[31:0]  csr_asid_diff_0     ;
-wire 	[31:0]  csr_save0_diff_0    ;
-wire 	[31:0]  csr_save1_diff_0    ;
-wire 	[31:0]  csr_save2_diff_0    ;
-wire 	[31:0]  csr_save3_diff_0    ;
-wire 	[31:0]  csr_tid_diff_0      ;
-wire 	[31:0]  csr_tcfg_diff_0     ;
-wire 	[31:0]  csr_tval_diff_0     ;
-wire 	[31:0]  csr_ticlr_diff_0    ;
-wire 	[31:0]  csr_llbctl_diff_0   ;
-wire 	[31:0]  csr_tlbrentry_diff_0;
-wire 	[31:0]  csr_dmw0_diff_0     ;
-wire 	[31:0]  csr_dmw1_diff_0     ;
-wire 	[31:0]  csr_pgdl_diff_0     ;
-wire 	[31:0]  csr_pgdh_diff_0     ;
-
 always @(posedge aclk) begin
     if (reset) begin
         {cmt_valid, cmt_cnt_inst, cmt_timer_64, cmt_inst_ld_en, cmt_ld_paddr, cmt_ld_vaddr, cmt_inst_st_en, cmt_st_paddr, cmt_st_vaddr, cmt_st_data, cmt_csr_rstat_en, cmt_csr_data} <= 0;
