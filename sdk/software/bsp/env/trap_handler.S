@@ -155,6 +155,7 @@ handle_hwi0:
 
 # HWI1 处理程序
 handle_hwi1:
+    bl HWI1_IntrHandler
     b trap_jump_exit
 
 # HWI2 处理程序
@@ -184,5 +185,10 @@ handle_hwi7:
 
 .weak HWI0_IntrHandler
 HWI0_IntrHandler:
+1:
+  b 1b
+
+.weak HWI1_IntrHandler
+HWI1_IntrHandler:
 1:
   b 1b

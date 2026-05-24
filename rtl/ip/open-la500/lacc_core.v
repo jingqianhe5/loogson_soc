@@ -18,6 +18,10 @@ module lacc_core(
 
     output reg                  lacc_tpu_start,  // TPU_START 脉冲
     output reg [31:0]           lacc_tpu_start_pc,// TPU 起始 PC
+    output                      lacc_tpu_cmd_valid,// 发往 TPU 时钟域的有序命令
+    input                       lacc_tpu_cmd_ready,// TPU 命令 FIFO 可接收
+    output [1:0]                lacc_tpu_cmd_op,   // 1=start, 2=UB write
+    output [31:0]               lacc_tpu_cmd_payload,
     input                       tpu_busy,       // TPU 忙
     input                       tpu_done,       // TPU 完成
     input                       tpu_error,      // TPU 错误
@@ -40,6 +44,12 @@ module lacc_core(
     localparam [`LACC_OP_WIDTH-1:0] CMD_TPU_STATUS = 2'd1;
     localparam [`LACC_OP_WIDTH-1:0] CMD_TPU_READ   = 2'd2;
     localparam [`LACC_OP_WIDTH-1:0] CMD_TPU_CLEAR  = 2'd3;
+
+    localparam [1:0] TPU_CMD_START    = 2'd1;
+    localparam [1:0] TPU_CMD_UB_WRITE = 2'd2;
+
+    localparam [6:0] IMM_READ_RESULT = 7'd0;
+    localparam [6:0] IMM_UB_WRITE    = 7'd1;
 
     localparam [7:0] ERR_NONE          = 8'd0;
     localparam [7:0] ERR_READ_INDEX    = 8'd1;
@@ -67,10 +77,18 @@ module lacc_core(
     // 1: TPU_STATUS
     // 2: TPU_READ
     // 3: TPU_CLEAR
-    wire start_cmd  = lacc_req_valid && (lacc_req_command == CMD_TPU_START);
-    wire status_cmd = lacc_req_valid && (lacc_req_command == CMD_TPU_STATUS);
-    wire read_cmd   = lacc_req_valid && (lacc_req_command == CMD_TPU_READ);
-    wire clear_cmd  = lacc_req_valid && (lacc_req_command == CMD_TPU_CLEAR);
+    wire start_cmd    = lacc_req_valid && (lacc_req_command == CMD_TPU_START);
+    wire status_cmd   = lacc_req_valid && (lacc_req_command == CMD_TPU_STATUS);
+    wire read_cmd     = lacc_req_valid &&
+                        (lacc_req_command == CMD_TPU_READ) &&
+                        (lacc_req_imm == IMM_READ_RESULT);
+    wire ub_write_cmd = lacc_req_valid &&
+                        (lacc_req_command == CMD_TPU_READ) &&
+                        (lacc_req_imm == IMM_UB_WRITE);
+    wire clear_cmd    = lacc_req_valid && (lacc_req_command == CMD_TPU_CLEAR);
+    wire fifo_cmd     = start_cmd || ub_write_cmd;
+    wire fifo_accept  = fifo_cmd && lacc_tpu_cmd_ready;
+    wire fifo_stall   = fifo_cmd && !lacc_tpu_cmd_ready;
 
     wire [5:0] read_word_index = lacc_req_rj[5:0]; // 0~31，每个索引读两条结果
     wire       read_index_bad  = (read_word_index >= 6'd32);
@@ -95,8 +113,16 @@ module lacc_core(
     reg [7:0] write_index;
     reg [3:0] result_class;
 
-    assign lacc_rsp_valid = lacc_req_valid;
+    assign lacc_rsp_valid = lacc_req_valid && (!fifo_cmd || lacc_tpu_cmd_ready);
     assign lacc_rsp_rdat  = rsp_data_comb;
+
+    assign lacc_tpu_cmd_valid = fifo_accept;
+    assign lacc_tpu_cmd_op =
+        start_cmd ? TPU_CMD_START :
+                    TPU_CMD_UB_WRITE;
+    assign lacc_tpu_cmd_payload =
+        start_cmd ? lacc_req_rj :
+                    {lacc_req_rj[15:0], lacc_req_rk[15:0]};
 
     assign lacc_data_valid = 1'b0;
     assign lacc_data_addr  = 32'd0;
@@ -106,7 +132,7 @@ module lacc_core(
 
     always @(*) begin
         rsp_data_comb = 32'd0;
-        if (start_cmd || status_cmd) begin
+        if (start_cmd || status_cmd || ub_write_cmd) begin
             rsp_data_comb = status_word;
         end else if (read_cmd) begin
             if (!read_pair_valid) begin
@@ -137,7 +163,7 @@ module lacc_core(
                 result_buffer[i] <= 16'd0;
             end
         end else begin
-            if (start_cmd) begin
+            if (start_cmd && lacc_tpu_cmd_ready) begin
                 // rj 就是 TPU 指令起始地址。
                 start_pc_reg        <= lacc_req_rj;
                 lacc_tpu_start_pc   <= lacc_req_rj;
@@ -155,6 +181,10 @@ module lacc_core(
                 end
             end else if (lacc_tpu_start && tpu_busy) begin
                 lacc_tpu_start <= 1'b0;
+            end else if (fifo_stall) begin
+                // 等 TPU 命令 FIFO 腾出空间，流水线保持在当前 LACC 指令。
+            end else if (ub_write_cmd) begin
+                // UB 写命令已经进入跨时钟 FIFO，LACC 本地状态不用修改。
             end else if (read_cmd) begin
                 if (read_index_bad) begin
                     error_reg      <= 1'b1;

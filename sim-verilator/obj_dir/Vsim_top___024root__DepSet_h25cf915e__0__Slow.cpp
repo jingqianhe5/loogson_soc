@@ -20,7 +20,7 @@ VL_ATTR_COLD void Vsim_top___024root___eval_static(Vsim_top___024root* vlSelf) {
     // Body
     Vsim_top___024root___eval_static__TOP(vlSelf);
     __Vilp = 0U;
-    while ((__Vilp <= 0x42U)) {
+    while ((__Vilp <= 0x44U)) {
         vlSelf->__Vm_traceActivity[__Vilp] = 1U;
         __Vilp = ((IData)(1U) + __Vilp);
     }
@@ -769,24 +769,12 @@ VL_ATTR_COLD void Vsim_top___024root___eval_initial__TOP(Vsim_top___024root* vlS
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_wr_host_data_in[5U] = 0U;
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_wr_host_data_in[6U] = 0U;
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_wr_host_data_in[7U] = 0U;
-    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_wr_host_data_in[2U] = 0U;
-    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_wr_host_data_in[3U] = 0U;
-    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_wr_host_data_in[4U] = 0U;
-    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_wr_host_data_in[5U] = 0U;
-    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_wr_host_data_in[6U] = 0U;
-    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_wr_host_data_in[7U] = 0U;
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_wr_host_addr_in[2U] = 0U;
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_wr_host_addr_in[3U] = 0U;
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_wr_host_addr_in[4U] = 0U;
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_wr_host_addr_in[5U] = 0U;
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_wr_host_addr_in[6U] = 0U;
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_wr_host_addr_in[7U] = 0U;
-    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_wr_host_addr_in[2U] = 0U;
-    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_wr_host_addr_in[3U] = 0U;
-    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_wr_host_addr_in[4U] = 0U;
-    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_wr_host_addr_in[5U] = 0U;
-    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_wr_host_addr_in[6U] = 0U;
-    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_wr_host_addr_in[7U] = 0U;
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_wr_host_valid_in[2U] = 0U;
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_wr_host_valid_in[3U] = 0U;
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_wr_host_valid_in[4U] = 0U;
@@ -799,6 +787,18 @@ VL_ATTR_COLD void Vsim_top___024root___eval_initial__TOP(Vsim_top___024root* vlS
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_wr_host_valid_in[5U] = 0U;
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_wr_host_valid_in[6U] = 0U;
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_wr_host_valid_in[7U] = 0U;
+    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_wr_host_addr_in[2U] = 0U;
+    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_wr_host_addr_in[3U] = 0U;
+    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_wr_host_addr_in[4U] = 0U;
+    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_wr_host_addr_in[5U] = 0U;
+    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_wr_host_addr_in[6U] = 0U;
+    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_wr_host_addr_in[7U] = 0U;
+    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_wr_host_data_in[2U] = 0U;
+    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_wr_host_data_in[3U] = 0U;
+    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_wr_host_data_in[4U] = 0U;
+    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_wr_host_data_in[5U] = 0U;
+    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_wr_host_data_in[6U] = 0U;
+    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_wr_host_data_in[7U] = 0U;
 }
 
 #ifdef VL_DEBUG
@@ -1317,6 +1317,8 @@ VL_ATTR_COLD void Vsim_top___024root___stl_sequent__TOP__0(Vsim_top___024root* v
     vlSelf->sim_top__DOT__u_soc_top__DOT__sys_resetn 
         = (1U & ((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__sim_clk__DOT__u_rst_sys__DOT__delay) 
                  >> 1U));
+    vlSelf->sim_top__DOT__u_soc_top__DOT__tpu_lacc_cmd_fifo_full 
+        = VL_LTES_III(32, 0x40U, vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_lacc_cmd_async_fifo__DOT__u_model__DOT__count);
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__id_stage__DOT__op_31_26_d 
         = (((QData)((IData)((0x3fU == (vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__id_stage__DOT__fs_to_ds_bus_r[1U] 
                                        >> 0x1aU)))) 
@@ -2427,10 +2429,8 @@ VL_ATTR_COLD void Vsim_top___024root___stl_sequent__TOP__0(Vsim_top___024root* v
                  >> 3U));
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__btb__DOT__ras_empty 
         = (0U == (IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__btb__DOT__ras_ptr));
-    vlSelf->sim_top__DOT__u_soc_top__DOT__tpu_cmd_fifo_full 
-        = VL_LTES_III(32, 0x10U, vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_cmd_async_fifo__DOT__u_model__DOT__count);
-    vlSelf->sim_top__DOT__u_soc_top__DOT__tpu_cmd_fifo_empty 
-        = (0U == vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_cmd_async_fifo__DOT__u_model__DOT__count);
+    vlSelf->sim_top__DOT__u_soc_top__DOT__tpu_lacc_cmd_fifo_empty 
+        = (0U == vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_lacc_cmd_async_fifo__DOT__u_model__DOT__count);
     vlSelf->sim_top__DOT__u_soc_top__DOT__tpu_result_fifo_valid 
         = (0U != vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_result_async_fifo__DOT__u_model__DOT__count);
     vlSelf->sim_top__DOT__u_soc_top__DOT__tpu_result_fifo_full 
@@ -2872,6 +2872,12 @@ VL_ATTR_COLD void Vsim_top___024root___stl_sequent__TOP__0(Vsim_top___024root* v
                                                                                 vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__btb__DOT__btb_counter
                                                                                 [0U]))) 
                                                                                 & vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__btb__DOT__btb_valid)))))))))))))))))))))))))))))))));
+    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_wr_host_data_in[0U] 
+        = vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_wr_host_data_in_0;
+    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_wr_host_addr_in[0U] 
+        = vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_wr_host_addr_in_0;
+    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_wr_host_valid_in[0U] 
+        = vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_wr_host_valid_in_0;
     vlSelf->sim_top__DOT__u_soc_top__DOT____Vcellinp__u_AXI_top__s_axi_awsize 
         = (0x10U | ((0x1c0U & ((IData)((vlSymsp->TOP__sim_top__DOT__u_soc_top__DOT__u_tpu_Axi_CDC.__PVT__awFifo__DOT___zz_ram_port1 
                                         >> 0x2cU)) 
@@ -2934,12 +2940,6 @@ VL_ATTR_COLD void Vsim_top___024root___stl_sequent__TOP__0(Vsim_top___024root* v
         = vlSelf->sim_top__DOT__u_soc_top__DOT__u_AXI_top__DOT__u_axi_crossbar__DOT__axi_crossbar_wr_inst__DOT__s_ifaces__BRA__2__KET____DOT__reg_inst__DOT__genblk3__DOT__s_axi_bid_reg;
     vlSelf->sim_top__DOT__u_soc_top__DOT__tpu_axi_rid 
         = vlSelf->sim_top__DOT__u_soc_top__DOT__u_AXI_top__DOT__u_axi_crossbar__DOT__axi_crossbar_rd_inst__DOT__s_ifaces__BRA__2__KET____DOT__reg_inst__DOT__genblk2__DOT__s_axi_rid_reg;
-    vlSelf->sim_top__DOT__u_soc_top__DOT__tpu_cmd_fifo_wr_en 
-        = (VL_GTS_III(32, 0x10U, vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_cmd_async_fifo__DOT__u_model__DOT__count) 
-           & (IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__tpu_cmd_fifo_wr_pending));
-    vlSelf->sim_top__DOT__u_soc_top__DOT__tpu_start_final 
-        = ((~ (IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__tpu_busy_tpu)) 
-           & (0U != vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_cmd_async_fifo__DOT__u_model__DOT__count));
     vlSelf->sim_top__DOT__u_soc_top__DOT__tpu_result_fifo_wr_en 
         = (1U & (~ (VL_LTES_III(32, 0x40U, vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_result_async_fifo__DOT__u_model__DOT__count) 
                     | (0U == (IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__vpu_valid_bus_out)))));
@@ -2990,18 +2990,6 @@ VL_ATTR_COLD void Vsim_top___024root___stl_sequent__TOP__0(Vsim_top___024root* v
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_axi_dma__DOT__axi_dma_wr_inst__DOT__out_fifo_empty 
         = ((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_axi_dma__DOT__axi_dma_wr_inst__DOT__out_fifo_rd_ptr_reg) 
            == (IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_axi_dma__DOT__axi_dma_wr_inst__DOT__out_fifo_wr_ptr_reg));
-    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_wr_host_data_in[0U] 
-        = vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_wr_host_data_in_0;
-    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_wr_host_data_in[1U] 
-        = vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_wr_host_data_in_1;
-    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_wr_host_addr_in[0U] 
-        = vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_wr_host_addr_in_0;
-    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_wr_host_addr_in[1U] 
-        = vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_wr_host_addr_in_1;
-    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_wr_host_valid_in[0U] 
-        = vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_wr_host_valid_in_0;
-    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_wr_host_valid_in[1U] 
-        = vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_wr_host_valid_in_1;
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_isp_top__DOT__u_AXI2Video__DOT__last_pixel_in_line 
         = ((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_isp_top__DOT__u_AXI2Video__DOT__pixel_cnt_r) 
            == (0xffffU & ((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__isp_cfg_width) 
@@ -3253,10 +3241,6 @@ VL_ATTR_COLD void Vsim_top___024root___stl_sequent__TOP__0(Vsim_top___024root* v
         = (((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_AXI_top__DOT__u_axi_crossbar__DOT__axi_crossbar_rd_inst__DOT__s_ifaces__BRA__2__KET____DOT__addr_inst__DOT__m_axi_aregion_reg) 
             << 8U) | (((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_AXI_top__DOT__u_axi_crossbar__DOT__axi_crossbar_rd_inst__DOT__s_ifaces__BRA__1__KET____DOT__addr_inst__DOT__m_axi_aregion_reg) 
                        << 4U) | (IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_AXI_top__DOT__u_axi_crossbar__DOT__axi_crossbar_rd_inst__DOT__s_ifaces__BRA__0__KET____DOT__addr_inst__DOT__m_axi_aregion_reg)));
-    vlSelf->sim_top__DOT__u_soc_top__DOT__tpu_start_pc_final 
-        = ((0U == vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_cmd_async_fifo__DOT__u_model__DOT__count)
-            ? 0U : vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_cmd_async_fifo__DOT__u_model__DOT__mem
-           [vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_cmd_async_fifo__DOT__u_model__DOT__rd_ptr]);
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_isp_config_axil__DOT__slv_reg_wren 
         = ((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_isp_config_axil__DOT__aw_done) 
            & ((~ (IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_isp_config_axil__DOT__axi_bvalid)) 
@@ -5406,6 +5390,8 @@ VL_ATTR_COLD void Vsim_top___024root___stl_sequent__TOP__0(Vsim_top___024root* v
             }
         }
     }
+    vlSelf->sim_top__DOT__u_soc_top__DOT__u_AXI_top__DOT__u_axi_crossbar__DOT__axi_crossbar_wr_inst__DOT__s_ifaces__BRA__2__KET____DOT__addr_inst__DOT__m_select_next 
+        = vlSelf->sim_top__DOT__u_soc_top__DOT__u_AXI_top__DOT__u_axi_crossbar__DOT__axi_crossbar_wr_inst__DOT__s_ifaces__BRA__2__KET____DOT__addr_inst__DOT__m_select_reg;
     if (((0xffffU & ((IData)(1U) + (IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__rd_bias_time_counter))) 
          < (0xffffU & ((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__rd_bias_row_size) 
                        + (IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__rd_bias_col_size))))) {
@@ -5431,8 +5417,6 @@ VL_ATTR_COLD void Vsim_top___024root___stl_sequent__TOP__0(Vsim_top___024root* v
                        + (IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__rd_weight_col_size))))) {
         vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__unnamedblk12__DOT__lane = 8U;
     }
-    vlSelf->sim_top__DOT__u_soc_top__DOT__u_AXI_top__DOT__u_axi_crossbar__DOT__axi_crossbar_wr_inst__DOT__s_ifaces__BRA__2__KET____DOT__addr_inst__DOT__m_select_next 
-        = vlSelf->sim_top__DOT__u_soc_top__DOT__u_AXI_top__DOT__u_axi_crossbar__DOT__axi_crossbar_wr_inst__DOT__s_ifaces__BRA__2__KET____DOT__addr_inst__DOT__m_select_reg;
     if ((0U == (IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_AXI_top__DOT__u_axi_crossbar__DOT__axi_crossbar_wr_inst__DOT__s_ifaces__BRA__2__KET____DOT__addr_inst__DOT__state_reg))) {
         if (((IData)(vlSymsp->TOP__sim_top__DOT__u_soc_top__DOT__u_tpu_Axi_CDC.__PVT__awFifo__DOT__popCC_addressGen_rValid) 
              & (~ (IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_AXI_top__DOT__u_axi_crossbar__DOT__axi_crossbar_wr_inst__DOT__s_ifaces__BRA__2__KET____DOT__addr_inst__DOT__s_axi_aready_reg)))) {
@@ -8961,18 +8945,12 @@ VL_ATTR_COLD void Vsim_top___024root___stl_sequent__TOP__0(Vsim_top___024root* v
             [0U]) & (vlSelf->sim_top__DOT__u_soc_top__DOT__u_AXI_top__DOT__u_axi_crossbar__DOT__axi_crossbar_rd_inst__DOT__s_ifaces__BRA__2__KET____DOT__addr_inst__DOT__thread_id_reg
                      [0U] == (0xfU & (IData)((vlSymsp->TOP__sim_top__DOT__u_soc_top__DOT__u_tpu_Axi_CDC.__PVT__arFifo__DOT___zz_ram_port1 
                                               >> 0x20U)))));
-    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_wr_host_data_in[0U] 
-        = vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_wr_host_data_in_0;
-    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_wr_host_data_in[1U] 
-        = vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_wr_host_data_in_1;
-    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_wr_host_addr_in[0U] 
-        = vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_wr_host_addr_in_0;
-    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_wr_host_addr_in[1U] 
-        = vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_wr_host_addr_in_1;
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_wr_host_valid_in[0U] 
         = vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_wr_host_valid_in_0;
-    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_wr_host_valid_in[1U] 
-        = vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_wr_host_valid_in_1;
+    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_wr_host_addr_in[0U] 
+        = vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_wr_host_addr_in_0;
+    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_wr_host_data_in[0U] 
+        = vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_wr_host_data_in_0;
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_AXI_top__DOT__u_axi_crossbar__DOT__axi_crossbar_wr_inst__DOT__s_ifaces__BRA__1__KET____DOT__addr_inst__DOT____VdfgTmp_hbab125fe__0 
         = ((0U != vlSelf->sim_top__DOT__u_soc_top__DOT__u_AXI_top__DOT__u_axi_crossbar__DOT__axi_crossbar_wr_inst__DOT__s_ifaces__BRA__1__KET____DOT__addr_inst__DOT__thread_count_reg
             [1U]) & (0U == vlSelf->sim_top__DOT__u_soc_top__DOT__u_AXI_top__DOT__u_axi_crossbar__DOT__axi_crossbar_wr_inst__DOT__s_ifaces__BRA__1__KET____DOT__addr_inst__DOT__thread_id_reg
@@ -9079,10 +9057,6 @@ VL_ATTR_COLD void Vsim_top___024root___stl_sequent__TOP__0(Vsim_top___024root* v
         = vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT____Vcellout__gradient_descent_gen__BRA__6__KET____DOT__gradient_descent_inst__value_updated_out;
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__value_updated_out[7U] 
         = vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT____Vcellout__gradient_descent_gen__BRA__7__KET____DOT__gradient_descent_inst__value_updated_out;
-    vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__exe_stage__DOT__preld_inst 
-        = ((vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__exe_stage__DOT__ds_to_es_bus_r[7U] 
-            >> 6U) & ((0U == (0x1fU & vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__exe_stage__DOT__ds_to_es_bus_r[4U])) 
-                      | (8U == (0x1fU & vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__exe_stage__DOT__ds_to_es_bus_r[4U]))));
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__dcache__DOT__refill_data 
         = (((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__dcache__DOT__request_buffer_op) 
             & ((3U & ((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__dcache__DOT__request_buffer_offset) 
@@ -9113,6 +9087,10 @@ VL_ATTR_COLD void Vsim_top___024root___stl_sequent__TOP__0(Vsim_top___024root* v
         = (0U == ((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_axi_uart_controller__DOT__dma_grant)
                    ? 0U : (0x3fU & (vlSelf->sim_top__DOT__u_soc_top__DOT__u_axi_uart_controller__DOT__AA_axi2apb_bridge_cpu__DOT__axi_s_req_addr 
                                     >> 0xeU))));
+    vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__exe_stage__DOT__preld_inst 
+        = ((vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__exe_stage__DOT__ds_to_es_bus_r[7U] 
+            >> 6U) & ((0U == (0x1fU & vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__exe_stage__DOT__ds_to_es_bus_r[4U])) 
+                      | (8U == (0x1fU & vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__exe_stage__DOT__ds_to_es_bus_r[4U]))));
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_axi_dvi__DOT__w_enter 
         = ((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__s3_axi_wready) 
            & (IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_AXI_top__DOT__u_axi_crossbar__DOT__axi_crossbar_wr_inst__DOT__m_ifaces__BRA__3__KET____DOT__reg_inst__DOT__genblk2__DOT__m_axi_wvalid_reg));
@@ -9377,10 +9355,6 @@ VL_ATTR_COLD void Vsim_top___024root___stl_sequent__TOP__0(Vsim_top___024root* v
                                                          & (((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_AXI_top__DOT__u_axi_crossbar__DOT__axi_crossbar_wr_inst__DOT__m_ifaces__BRA__0__KET____DOT__reg_inst__DOT__genblk2__DOT__s_axi_wready_reg) 
                                                              & (IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_AXI_top__DOT__u_axi_crossbar__DOT__axi_crossbar_wr_inst__DOT__m_ifaces__BRA__0__KET____DOT__w_select_valid_reg)) 
                                                             << (IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_AXI_top__DOT__u_axi_crossbar__DOT__axi_crossbar_wr_inst__DOT__m_ifaces__BRA__0__KET____DOT__w_select_reg))))))))));
-    vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__data_op 
-        = (1U & ((~ (IData)((0U != (0x60U & vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__exe_stage__DOT__ds_to_es_bus_r[7U])))) 
-                 & (vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__exe_stage__DOT__ds_to_es_bus_r[4U] 
-                    >> 5U)));
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__dcache__DOT__wr_match_way_bank[0U][0U] 
         = ((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__dcache__DOT__write_buffer_state) 
            & ((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__dcache__DOT__write_buffer_way) 
@@ -9413,6 +9387,10 @@ VL_ATTR_COLD void Vsim_top___024root___stl_sequent__TOP__0(Vsim_top___024root* v
         = ((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__dcache__DOT__write_buffer_state) 
            & (IData)((((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__dcache__DOT__write_buffer_way) 
                        >> 1U) & (0xcU == (0xcU & (IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__dcache__DOT__write_buffer_offset))))));
+    vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__data_op 
+        = (1U & ((~ (IData)((0U != (0x60U & vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__exe_stage__DOT__ds_to_es_bus_r[7U])))) 
+                 & (vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__exe_stage__DOT__ds_to_es_bus_r[4U] 
+                    >> 5U)));
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__icache__DOT__cacop_op_mode2 
         = ((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__icache__DOT__request_buffer_icacop) 
            & (2U == (IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__icache__DOT__request_buffer_cacop_op_mode)));
@@ -9477,4 +9455,25 @@ VL_ATTR_COLD void Vsim_top___024root___stl_sequent__TOP__0(Vsim_top___024root* v
                                           [0xdU]) & 
                                          ((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__btb__DOT__ras_valid) 
                                           >> 0xdU)));
+    vlSelf->__VdfgTmp_he00265c2__0 = ((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__btb__DOT__fetch_en_r) 
+                                      & (((vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__btb__DOT__fetch_pc_r 
+                                           >> 2U) == 
+                                          vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__btb__DOT__ras_pc
+                                          [0xcU]) & 
+                                         ((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__btb__DOT__ras_valid) 
+                                          >> 0xcU)));
+    vlSelf->__VdfgTmp_he0029365__0 = ((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__btb__DOT__fetch_en_r) 
+                                      & (((vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__btb__DOT__fetch_pc_r 
+                                           >> 2U) == 
+                                          vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__btb__DOT__ras_pc
+                                          [0xbU]) & 
+                                         ((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__btb__DOT__ras_valid) 
+                                          >> 0xbU)));
+    vlSelf->__VdfgTmp_he577690d__0 = ((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__btb__DOT__fetch_en_r) 
+                                      & (((vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__btb__DOT__fetch_pc_r 
+                                           >> 2U) == 
+                                          vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__btb__DOT__ras_pc
+                                          [0xaU]) & 
+                                         ((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__btb__DOT__ras_valid) 
+                                          >> 0xaU)));
 }

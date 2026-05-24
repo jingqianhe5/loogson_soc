@@ -159,6 +159,9 @@ void reset_dut(uint16_t lr_q8_8) {
     dut->rst_n = 0;
     dut->ins_valid = 0;
     dut->ins = ins_nop();
+    dut->ub_wr_ext_valid = 0;
+    dut->ub_wr_ext_addr = 0;
+    dut->ub_wr_ext_data = 0;
     dut->learn_rate_in = lr_q8_8;
     dut->vpu_factor_in = 0;
     dut->two_div_N_in = 0;

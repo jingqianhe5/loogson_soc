@@ -175,6 +175,9 @@ void reset_dut() {
     dut->rst_n = 0;
     dut->ins_valid = 0;
     dut->ins = ins_nop();
+    dut->ub_wr_ext_valid = 0;
+    dut->ub_wr_ext_addr = 0;
+    dut->ub_wr_ext_data = 0;
     dut->learn_rate_in = LEARN_RATE;
     dut->vpu_factor_in = VPU_FACTOR;
     dut->two_div_N_in = TWO_DIV_N;

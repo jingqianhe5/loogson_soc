@@ -15,6 +15,10 @@ module tpu_axi_fetch_top #(
     output reg  [31:0]               pc_current, // 当前/下一条要读取的 TPU 指令地址
     output reg  [31:0]               last_ins,   // 最近一次从 SRAM 取回的 32-bit TPU 指令
 
+    input  wire                      ub_wr_ext_valid,//用来直接接受cpu给的输入矩阵 用来实时测试输入的数据集
+    input  wire [15:0]               ub_wr_ext_addr,
+    input  wire [15:0]               ub_wr_ext_data,
+
     output wire [AXI_ID_WIDTH-1:0]   m_axi_awid,    // 未使用：写地址 ID，固定 0
     output wire [31:0]               m_axi_awaddr,  // 未使用：写地址，固定 0
     output wire [7:0]                m_axi_awlen,   // 未使用：写 burst 长度，固定 0
@@ -313,6 +317,9 @@ module tpu_axi_fetch_top #(
         .rst_n(rst_n),
         .ins_valid(ins_valid_reg),
         .ins(ins_reg),
+        .ub_wr_ext_valid(ub_wr_ext_valid),
+        .ub_wr_ext_addr(ub_wr_ext_addr),
+        .ub_wr_ext_data(ub_wr_ext_data),
         .learn_rate_in(16'd0),
         .vpu_factor_in(16'd0),
         .two_div_N_in(16'd0),

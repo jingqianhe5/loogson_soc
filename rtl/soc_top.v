@@ -215,7 +215,7 @@ wire        uart0_int;
 wire        confreg_dma_finish;
 wire        confreg_fft_finish;
 //-----------------------------------------------------
-assign intrpt      = {7'd0, confreg_int};
+assign intrpt      = {6'd0, uart0_int, confreg_int};
 assign cpu_break_point = 1'b0;
 assign cpu_infor_flag  = 1'b0;
 assign cpu_reg_num     = 5'd0;
@@ -227,7 +227,7 @@ assign confreg_fft_finish = 1'b0;
 core_top u_core_top (
     .aclk               (cpu_clk    ),
     .aresetn            (cpu_resetn ),
-    .intrpt             ( {7'b0,confreg_int} ), 
+    .intrpt             ( {6'b0,uart0_int,confreg_int} ), 
     
     // AXI Read Request
     .arid               (cpu_arid   ),//4
@@ -280,6 +280,10 @@ core_top u_core_top (
 `ifdef HAS_LACC
     .lacc_tpu_start     (lacc_tpu_start),
     .lacc_tpu_start_pc  (lacc_tpu_start_pc),
+    .lacc_tpu_cmd_valid (lacc_tpu_cmd_valid),
+    .lacc_tpu_cmd_ready (lacc_tpu_cmd_ready),
+    .lacc_tpu_cmd_op    (lacc_tpu_cmd_op),
+    .lacc_tpu_cmd_payload(lacc_tpu_cmd_payload),
     .tpu_busy           (tpu_busy),
     .tpu_done           (tpu_done),
     .tpu_error          (tpu_error),
@@ -647,17 +651,28 @@ wire [8*16-1:0] tpu_infer_result_data_tpu;
 wire [7:0]      tpu_infer_result_valid_tpu;
 wire            lacc_tpu_start;
 wire [31:0]     lacc_tpu_start_pc;
+wire            lacc_tpu_cmd_valid;
+wire            lacc_tpu_cmd_ready;
+wire [1:0]      lacc_tpu_cmd_op;
+wire [31:0]     lacc_tpu_cmd_payload;
 wire            tpu_start_final;
 wire [31:0]     tpu_start_pc_final;
-wire            tpu_cmd_fifo_full;
-wire            tpu_cmd_fifo_empty;
-wire            tpu_cmd_fifo_valid;
-wire            tpu_cmd_fifo_wr_rst_busy;
-wire            tpu_cmd_fifo_rd_rst_busy;
-wire [31:0]     tpu_cmd_fifo_dout;
-reg             lacc_tpu_start_d;
-reg             tpu_cmd_fifo_wr_pending;
-reg [31:0]      tpu_cmd_fifo_din;
+wire            tpu_lacc_cmd_fifo_full;
+wire            tpu_lacc_cmd_fifo_empty;
+wire            tpu_lacc_cmd_fifo_valid;
+wire            tpu_lacc_cmd_fifo_wr_rst_busy;
+wire            tpu_lacc_cmd_fifo_rd_rst_busy;
+wire [135:0]    tpu_lacc_cmd_fifo_din;
+wire [135:0]    tpu_lacc_cmd_fifo_dout;
+wire [1:0]      tpu_lacc_cmd_op_tpu;
+wire [31:0]     tpu_lacc_cmd_payload_tpu;
+wire            tpu_lacc_cmd_is_start;
+wire            tpu_lacc_cmd_is_ub_write;
+wire            tpu_lacc_cmd_fifo_wr_en;
+wire            tpu_lacc_cmd_fifo_rd_en;
+wire            tpu_ub_host_wr_valid;
+wire [15:0]     tpu_ub_host_wr_addr;
+wire [15:0]     tpu_ub_host_wr_data;
 
 wire            tpu_result_fifo_full;
 wire            tpu_result_fifo_empty;
@@ -670,10 +685,34 @@ reg [1:0]       tpu_busy_sync_cpu;
 reg [1:0]       tpu_done_sync_cpu;
 reg [1:0]       tpu_error_sync_cpu;
 
-wire tpu_cmd_fifo_wr_en =
-    tpu_cmd_fifo_wr_pending && !tpu_cmd_fifo_full && !tpu_cmd_fifo_wr_rst_busy;
-wire tpu_cmd_fifo_rd_en =
-    tpu_cmd_fifo_valid && !tpu_cmd_fifo_rd_rst_busy && !tpu_busy_tpu;
+localparam [1:0] TPU_LACC_CMD_START    = 2'd1;
+localparam [1:0] TPU_LACC_CMD_UB_WRITE = 2'd2;
+
+assign lacc_tpu_cmd_ready =
+    !tpu_lacc_cmd_fifo_full && !tpu_lacc_cmd_fifo_wr_rst_busy;
+assign tpu_lacc_cmd_fifo_wr_en =
+    lacc_tpu_cmd_valid && lacc_tpu_cmd_ready;
+assign tpu_lacc_cmd_fifo_din =
+    {lacc_tpu_cmd_op, 102'd0, lacc_tpu_cmd_payload};
+
+assign tpu_lacc_cmd_op_tpu      = tpu_lacc_cmd_fifo_dout[135:134];
+assign tpu_lacc_cmd_payload_tpu = tpu_lacc_cmd_fifo_dout[31:0];
+assign tpu_lacc_cmd_is_start =
+    tpu_lacc_cmd_fifo_valid && (tpu_lacc_cmd_op_tpu == TPU_LACC_CMD_START);
+assign tpu_lacc_cmd_is_ub_write =
+    tpu_lacc_cmd_fifo_valid && (tpu_lacc_cmd_op_tpu == TPU_LACC_CMD_UB_WRITE);
+assign tpu_lacc_cmd_fifo_rd_en =
+    tpu_lacc_cmd_fifo_valid &&
+    !tpu_lacc_cmd_fifo_rd_rst_busy &&
+    (!tpu_lacc_cmd_is_start || !tpu_busy_tpu);
+
+assign tpu_start_final =
+    tpu_lacc_cmd_fifo_rd_en && tpu_lacc_cmd_is_start;
+assign tpu_start_pc_final = tpu_lacc_cmd_payload_tpu;
+assign tpu_ub_host_wr_valid =
+    tpu_lacc_cmd_fifo_rd_en && tpu_lacc_cmd_is_ub_write;
+assign tpu_ub_host_wr_addr = tpu_lacc_cmd_payload_tpu[31:16];
+assign tpu_ub_host_wr_data = tpu_lacc_cmd_payload_tpu[15:0];
 
 wire tpu_result_fifo_wr_en =
     (tpu_infer_result_valid_tpu != 8'd0) &&
@@ -681,23 +720,6 @@ wire tpu_result_fifo_wr_en =
     !tpu_result_fifo_wr_rst_busy;
 wire tpu_result_fifo_rd_en =
     tpu_result_fifo_valid && !tpu_result_fifo_rd_rst_busy;
-
-always @(posedge cpu_clk or negedge cpu_resetn) begin
-    if (!cpu_resetn) begin
-        lacc_tpu_start_d       <= 1'b0;
-        tpu_cmd_fifo_wr_pending <= 1'b0;
-        tpu_cmd_fifo_din       <= 32'd0;
-    end else begin
-        lacc_tpu_start_d <= lacc_tpu_start;
-
-        if (lacc_tpu_start && !lacc_tpu_start_d) begin
-            tpu_cmd_fifo_wr_pending <= 1'b1;
-            tpu_cmd_fifo_din        <= lacc_tpu_start_pc;
-        end else if (tpu_cmd_fifo_wr_en) begin
-            tpu_cmd_fifo_wr_pending <= 1'b0;
-        end
-    end
-end
 
 always @(posedge cpu_clk or negedge cpu_resetn) begin
     if (!cpu_resetn) begin
@@ -715,27 +737,24 @@ assign tpu_busy  = tpu_busy_sync_cpu[1];
 assign tpu_done  = tpu_done_sync_cpu[1];
 assign tpu_error = tpu_error_sync_cpu[1];
 
-assign tpu_start_final    = tpu_cmd_fifo_rd_en;
-assign tpu_start_pc_final = tpu_cmd_fifo_dout;
-
 assign tpu_infer_result_valid =
     tpu_result_fifo_valid ? tpu_result_fifo_dout[135:128] : 8'd0;
 assign tpu_infer_result_data =
     tpu_result_fifo_valid ? tpu_result_fifo_dout[127:0] : 128'd0;
 
-tpu_cmd_async_fifo u_tpu_cmd_async_fifo (
+tpu_result_async_fifo u_tpu_lacc_cmd_async_fifo (
     .rst         (~sys_resetn),
     .wr_clk      (cpu_clk),
     .rd_clk      (tpu_clk),
-    .din         (tpu_cmd_fifo_din),
-    .wr_en       (tpu_cmd_fifo_wr_en),
-    .rd_en       (tpu_cmd_fifo_rd_en),
-    .dout        (tpu_cmd_fifo_dout),
-    .full        (tpu_cmd_fifo_full),
-    .empty       (tpu_cmd_fifo_empty),
-    .valid       (tpu_cmd_fifo_valid),
-    .wr_rst_busy (tpu_cmd_fifo_wr_rst_busy),
-    .rd_rst_busy (tpu_cmd_fifo_rd_rst_busy)
+    .din         (tpu_lacc_cmd_fifo_din),
+    .wr_en       (tpu_lacc_cmd_fifo_wr_en),
+    .rd_en       (tpu_lacc_cmd_fifo_rd_en),
+    .dout        (tpu_lacc_cmd_fifo_dout),
+    .full        (tpu_lacc_cmd_fifo_full),
+    .empty       (tpu_lacc_cmd_fifo_empty),
+    .valid       (tpu_lacc_cmd_fifo_valid),
+    .wr_rst_busy (tpu_lacc_cmd_fifo_wr_rst_busy),
+    .rd_rst_busy (tpu_lacc_cmd_fifo_rd_rst_busy)
 );
 
 tpu_result_async_fifo u_tpu_result_async_fifo (
@@ -1645,6 +1664,9 @@ tpu_axi_fetch_top #(
     .error                (tpu_error_tpu),
     .pc_current           (tpu_pc_current),
     .last_ins             (tpu_last_ins),
+    .ub_wr_ext_valid      (tpu_ub_host_wr_valid),
+    .ub_wr_ext_addr       (tpu_ub_host_wr_addr),
+    .ub_wr_ext_data       (tpu_ub_host_wr_data),
 
     .m_axi_awid           (tpu_axi_awid),
     .m_axi_awaddr         (tpu_axi_awaddr),

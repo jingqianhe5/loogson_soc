@@ -2304,18 +2304,21 @@ VL_ATTR_COLD void Vsim_top___024root___ctor_var_reset(Vsim_top___024root* vlSelf
     vlSelf->sim_top__DOT__u_soc_top__DOT__lacc_tpu_start_pc = 0;
     vlSelf->sim_top__DOT__u_soc_top__DOT__tpu_start_final = 0;
     vlSelf->sim_top__DOT__u_soc_top__DOT__tpu_start_pc_final = 0;
-    vlSelf->sim_top__DOT__u_soc_top__DOT__tpu_cmd_fifo_full = 0;
-    vlSelf->sim_top__DOT__u_soc_top__DOT__tpu_cmd_fifo_empty = 0;
-    vlSelf->sim_top__DOT__u_soc_top__DOT__lacc_tpu_start_d = 0;
-    vlSelf->sim_top__DOT__u_soc_top__DOT__tpu_cmd_fifo_wr_pending = 0;
-    vlSelf->sim_top__DOT__u_soc_top__DOT__tpu_cmd_fifo_din = 0;
+    vlSelf->sim_top__DOT__u_soc_top__DOT__tpu_lacc_cmd_fifo_full = 0;
+    vlSelf->sim_top__DOT__u_soc_top__DOT__tpu_lacc_cmd_fifo_empty = 0;
+    vlSelf->sim_top__DOT__u_soc_top__DOT__tpu_lacc_cmd_op_tpu = 0;
+    vlSelf->sim_top__DOT__u_soc_top__DOT__tpu_lacc_cmd_is_start = 0;
+    vlSelf->sim_top__DOT__u_soc_top__DOT__tpu_lacc_cmd_fifo_wr_en = 0;
+    vlSelf->sim_top__DOT__u_soc_top__DOT__tpu_lacc_cmd_fifo_rd_en = 0;
+    vlSelf->sim_top__DOT__u_soc_top__DOT__tpu_ub_host_wr_valid = 0;
+    vlSelf->sim_top__DOT__u_soc_top__DOT__tpu_ub_host_wr_addr = 0;
+    vlSelf->sim_top__DOT__u_soc_top__DOT__tpu_ub_host_wr_data = 0;
     vlSelf->sim_top__DOT__u_soc_top__DOT__tpu_result_fifo_full = 0;
     vlSelf->sim_top__DOT__u_soc_top__DOT__tpu_result_fifo_empty = 0;
     vlSelf->sim_top__DOT__u_soc_top__DOT__tpu_result_fifo_valid = 0;
     vlSelf->sim_top__DOT__u_soc_top__DOT__tpu_busy_sync_cpu = 0;
     vlSelf->sim_top__DOT__u_soc_top__DOT__tpu_done_sync_cpu = 0;
     vlSelf->sim_top__DOT__u_soc_top__DOT__tpu_error_sync_cpu = 0;
-    vlSelf->sim_top__DOT__u_soc_top__DOT__tpu_cmd_fifo_wr_en = 0;
     vlSelf->sim_top__DOT__u_soc_top__DOT__tpu_result_fifo_wr_en = 0;
     vlSelf->sim_top__DOT__u_soc_top__DOT____Vcellinp__u_AXI_top__m_axi_rvalid = 0;
     vlSelf->sim_top__DOT__u_soc_top__DOT____Vcellinp__u_AXI_top__m_axi_rlast = 0;
@@ -2609,7 +2612,6 @@ VL_ATTR_COLD void Vsim_top___024root___ctor_var_reset(Vsim_top___024root* vlSelf
     VL_ZERO_RESET_W(65, vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__id_stage__DOT____VdfgTmp_haa014223__0);
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__id_stage__DOT____VdfgTmp_hb469ad25__0 = 0;
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__id_stage__DOT____VdfgTmp_h7517b185__0 = 0;
-    vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__id_stage__DOT____VdfgTmp_ha340f1e6__0 = 0;
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__id_stage__DOT____VdfgTmp_hbc7c3b7a__0 = 0;
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__id_stage__DOT____VdfgTmp_haf287d09__0 = 0;
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__id_stage__DOT____VdfgTmp_h703073d2__0 = 0;
@@ -2745,6 +2747,8 @@ VL_ATTR_COLD void Vsim_top___024root___ctor_var_reset(Vsim_top___024root* vlSelf
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__u_lacc_core__DOT__start_cmd = 0;
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__u_lacc_core__DOT__status_cmd = 0;
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__u_lacc_core__DOT__read_cmd = 0;
+    vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__u_lacc_core__DOT__ub_write_cmd = 0;
+    vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__u_lacc_core__DOT__fifo_cmd = 0;
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__u_lacc_core__DOT__read_pair_valid = 0;
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__u_lacc_core__DOT__i = 0;
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__u_lacc_core__DOT__lane = 0;
@@ -3236,12 +3240,12 @@ VL_ATTR_COLD void Vsim_top___024root___ctor_var_reset(Vsim_top___024root* vlSelf
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__perf_counter__DOT__mem_inst_counter = 0;
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__perf_counter__DOT__br_pre_counter = 0;
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__perf_counter__DOT__br_pre_error_counter = 0;
-    for (int __Vi0 = 0; __Vi0 < 16; ++__Vi0) {
-        vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_cmd_async_fifo__DOT__u_model__DOT__mem[__Vi0] = 0;
+    for (int __Vi0 = 0; __Vi0 < 64; ++__Vi0) {
+        VL_ZERO_RESET_W(136, vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_lacc_cmd_async_fifo__DOT__u_model__DOT__mem[__Vi0]);
     }
-    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_cmd_async_fifo__DOT__u_model__DOT__wr_ptr = 0;
-    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_cmd_async_fifo__DOT__u_model__DOT__rd_ptr = 0;
-    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_cmd_async_fifo__DOT__u_model__DOT__count = 0;
+    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_lacc_cmd_async_fifo__DOT__u_model__DOT__wr_ptr = 0;
+    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_lacc_cmd_async_fifo__DOT__u_model__DOT__rd_ptr = 0;
+    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_lacc_cmd_async_fifo__DOT__u_model__DOT__count = 0;
     for (int __Vi0 = 0; __Vi0 < 64; ++__Vi0) {
         VL_ZERO_RESET_W(136, vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_result_async_fifo__DOT__u_model__DOT__mem[__Vi0]);
     }
@@ -4048,9 +4052,6 @@ VL_ATTR_COLD void Vsim_top___024root___ctor_var_reset(Vsim_top___024root* vlSelf
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_AXI_top__DOT__u_axi_crossbar__DOT__axi_crossbar_rd_inst__DOT____VdfgTmp_h0ce2c142__0 = 0;
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_AXI_top__DOT__u_axi_crossbar__DOT__axi_crossbar_rd_inst__DOT____VdfgTmp_ha20a1a81__0 = 0;
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_AXI_top__DOT__u_axi_crossbar__DOT__axi_crossbar_rd_inst__DOT____VdfgTmp_h374469b8__0 = 0;
-    vlSelf->sim_top__DOT__u_soc_top__DOT__u_AXI_top__DOT__u_axi_crossbar__DOT__axi_crossbar_rd_inst__DOT____VdfgTmp_h0241b9ce__0 = 0;
-    vlSelf->sim_top__DOT__u_soc_top__DOT__u_AXI_top__DOT__u_axi_crossbar__DOT__axi_crossbar_rd_inst__DOT____VdfgTmp_hbb5efbf9__0 = 0;
-    vlSelf->sim_top__DOT__u_soc_top__DOT__u_AXI_top__DOT__u_axi_crossbar__DOT__axi_crossbar_rd_inst__DOT____VdfgTmp_h65512b5a__0 = 0;
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_AXI_top__DOT__u_axi_crossbar__DOT__axi_crossbar_rd_inst__DOT____VdfgTmp_hb74f63a4__0 = 0;
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_AXI_top__DOT__u_axi_crossbar__DOT__axi_crossbar_rd_inst__DOT____VdfgTmp_h5e21b439__0 = 0;
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_AXI_top__DOT__u_axi_crossbar__DOT__axi_crossbar_rd_inst__DOT____VdfgTmp_h24d2997d__0 = 0;
@@ -7034,6 +7035,7 @@ VL_ATTR_COLD void Vsim_top___024root___ctor_var_reset(Vsim_top___024root* vlSelf
     vlSelf->sim_top__DOT__u_uart_tx_monitor__DOT__sample_cnt = 0;
     vlSelf->sim_top__DOT__u_uart_tx_monitor__DOT__bit_cnt = 0;
     vlSelf->sim_top__DOT__u_uart_tx_monitor__DOT__rx_data = 0;
+    VL_ZERO_RESET_W(136, vlSelf->__VdfgTmp_h8d1be2a1__0);
     vlSelf->__VdfgTmp_h9ffef122__0 = 0;
     vlSelf->__VdfgTmp_h6fb3a075__0 = 0;
     vlSelf->__VdfgTmp_h5e5b272d__0 = 0;
@@ -7253,7 +7255,6 @@ VL_ATTR_COLD void Vsim_top___024root___ctor_var_reset(Vsim_top___024root* vlSelf
     vlSelf->__Vfunc_sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_row__17__addr = 0;
     vlSelf->__Vfunc_sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_bank__18__Vfuncout = 0;
     vlSelf->__Vfunc_sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_bank__18__addr = 0;
-    vlSelf->__Vdly__sim_top__DOT__u_soc_top__DOT__lacc_tpu_start = 0;
     vlSelf->__Vdly__sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__u_csr__DOT__csr_crmd = 0;
     vlSelf->__Vdly__sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__u_csr__DOT__timer_en = 0;
     vlSelf->__Vdly__sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__u_csr__DOT__csr_tval = 0;
@@ -7733,7 +7734,7 @@ VL_ATTR_COLD void Vsim_top___024root___ctor_var_reset(Vsim_top___024root* vlSelf
     vlSelf->__Vtrigrprev__TOP__sim_top__DOT__u_soc_top__DOT__u_tpu_Axi_CDC____PVT__awFifo__DOT__bufferCC_12__DOT__buffers_1 = 0;
     vlSelf->__Vtrigrprev__TOP__sim_top__DOT__u_soc_top__DOT__u_tpu_Axi_CDC____PVT__bFifo__DOT__bufferCC_12__DOT__buffers_1 = 0;
     vlSelf->__VactDidInit = 0;
-    for (int __Vi0 = 0; __Vi0 < 67; ++__Vi0) {
+    for (int __Vi0 = 0; __Vi0 < 69; ++__Vi0) {
         vlSelf->__Vm_traceActivity[__Vi0] = 0;
     }
 }

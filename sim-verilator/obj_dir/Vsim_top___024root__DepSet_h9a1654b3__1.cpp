@@ -1232,6 +1232,8 @@ VL_INLINE_OPT void Vsim_top___024root___nba_sequent__TOP__12(Vsim_top___024root*
     __Vdlyvset__sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_memory__v7 = 0U;
     vlSelf->__Vdlyvset__sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_rd_weight_valid_out__v0 = 0U;
     vlSelf->__Vdlyvset__sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_rd_weight_valid_out__v8 = 0U;
+    __Vdlyvset__sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__grad_value_valid_in__v0 = 0U;
+    __Vdlyvset__sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__grad_value_valid_in__v8 = 0U;
     vlSelf->__Vdly__sim_top__DOT__u_soc_top__DOT__tpu_pc_current 
         = vlSelf->sim_top__DOT__u_soc_top__DOT__tpu_pc_current;
     vlSelf->__Vdly__sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__state 
@@ -1242,8 +1244,6 @@ VL_INLINE_OPT void Vsim_top___024root___nba_sequent__TOP__12(Vsim_top___024root*
         = vlSelf->sim_top__DOT__u_soc_top__DOT__tpu_axi_rready;
     vlSelf->__Vdly__sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__wait_counter 
         = vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__wait_counter;
-    __Vdlyvset__sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__grad_value_valid_in__v0 = 0U;
-    __Vdlyvset__sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__grad_value_valid_in__v8 = 0U;
     __Vdlyvset__sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__rd_row_hold__v0 = 0U;
     __Vdlyvset__sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__rd_row_hold__v1 = 0U;
     __Vdlyvset__sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__rd_row_hold__v2 = 0U;
@@ -1401,24 +1401,6 @@ VL_INLINE_OPT void Vsim_top___024root___nba_sequent__TOP__12(Vsim_top___024root*
         vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__vpu_inst__DOT____Vcellout__vpu_lane__BRA__5__KET____DOT__leaky_relu_unit_inst__leaky_valid_out 
             = (1U & vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__vpu_inst__DOT__lr_valid_in
                [5U]);
-        vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__vpu_inst__DOT____Vcellout__vpu_lane__BRA__4__KET____DOT__leaky_relu_unit_inst__leaky_valid_out 
-            = (1U & vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__vpu_inst__DOT__lr_valid_in
-               [4U]);
-        vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__vpu_inst__DOT____Vcellout__vpu_lane__BRA__3__KET____DOT__leaky_relu_unit_inst__leaky_valid_out 
-            = (1U & vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__vpu_inst__DOT__lr_valid_in
-               [3U]);
-        vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__vpu_inst__DOT____Vcellout__vpu_lane__BRA__2__KET____DOT__leaky_relu_unit_inst__leaky_valid_out 
-            = (1U & vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__vpu_inst__DOT__lr_valid_in
-               [2U]);
-        vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__vpu_inst__DOT____Vcellout__vpu_lane__BRA__1__KET____DOT__leaky_relu_unit_inst__leaky_valid_out 
-            = (1U & vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__vpu_inst__DOT__lr_valid_in
-               [1U]);
-        vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__vpu_inst__DOT____Vcellout__vpu_lane__BRA__0__KET____DOT__leaky_relu_unit_inst__leaky_valid_out 
-            = (1U & vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__vpu_inst__DOT__lr_valid_in
-               [0U]);
-        vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT____Vcellout__gradient_descent_gen__BRA__7__KET____DOT__gradient_descent_inst__grad_descent_done_out 
-            = (1U & vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__grad_value_valid_in
-               [7U]);
         vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__unnamedblk24__DOT__unnamedblk25__DOT__b = 8U;
         vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__unnamedblk24__DOT__unnamedblk26__DOT__lane = 8U;
         vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__unnamedblk24__DOT__g = 7U;
@@ -3269,8 +3251,6 @@ VL_INLINE_OPT void Vsim_top___024root___nba_sequent__TOP__12(Vsim_top___024root*
                     if ((1U & (~ (vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__ins_reg 
                                   >> 0x1dU)))) {
                         if ((0x10000000U & vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__ins_reg)) {
-                            vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_wr_host_addr_in_1 = 0U;
-                            vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_wr_host_data_in_1 = 0U;
                             vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_wr_host_addr_in_0 
                                 = (0xfffU & (vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__ins_reg 
                                              >> 0x10U));
@@ -3278,6 +3258,8 @@ VL_INLINE_OPT void Vsim_top___024root___nba_sequent__TOP__12(Vsim_top___024root*
                                 = (0xffffU & vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__ins_reg);
                             vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_wr_host_valid_in_0 = 1U;
                             vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_wr_host_valid_in_1 = 0U;
+                            vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_wr_host_addr_in_1 = 0U;
+                            vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_wr_host_data_in_1 = 0U;
                         }
                     }
                 }
@@ -3294,6 +3276,24 @@ VL_INLINE_OPT void Vsim_top___024root___nba_sequent__TOP__12(Vsim_top___024root*
                 }
             }
         }
+        vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__vpu_inst__DOT____Vcellout__vpu_lane__BRA__4__KET____DOT__leaky_relu_unit_inst__leaky_valid_out 
+            = (1U & vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__vpu_inst__DOT__lr_valid_in
+               [4U]);
+        vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__vpu_inst__DOT____Vcellout__vpu_lane__BRA__3__KET____DOT__leaky_relu_unit_inst__leaky_valid_out 
+            = (1U & vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__vpu_inst__DOT__lr_valid_in
+               [3U]);
+        vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__vpu_inst__DOT____Vcellout__vpu_lane__BRA__2__KET____DOT__leaky_relu_unit_inst__leaky_valid_out 
+            = (1U & vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__vpu_inst__DOT__lr_valid_in
+               [2U]);
+        vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__vpu_inst__DOT____Vcellout__vpu_lane__BRA__1__KET____DOT__leaky_relu_unit_inst__leaky_valid_out 
+            = (1U & vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__vpu_inst__DOT__lr_valid_in
+               [1U]);
+        vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__vpu_inst__DOT____Vcellout__vpu_lane__BRA__0__KET____DOT__leaky_relu_unit_inst__leaky_valid_out 
+            = (1U & vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__vpu_inst__DOT__lr_valid_in
+               [0U]);
+        vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT____Vcellout__gradient_descent_gen__BRA__7__KET____DOT__gradient_descent_inst__grad_descent_done_out 
+            = (1U & vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__grad_value_valid_in
+               [7U]);
         vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT____Vcellout__gradient_descent_gen__BRA__6__KET____DOT__gradient_descent_inst__grad_descent_done_out 
             = (1U & vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__grad_value_valid_in
                [6U]);
@@ -3327,12 +3327,6 @@ VL_INLINE_OPT void Vsim_top___024root___nba_sequent__TOP__12(Vsim_top___024root*
         vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__vpu_inst__DOT____Vcellout__vpu_lane__BRA__7__KET____DOT__leaky_relu_unit_inst__leaky_valid_out = 0U;
         vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__vpu_inst__DOT____Vcellout__vpu_lane__BRA__6__KET____DOT__leaky_relu_unit_inst__leaky_valid_out = 0U;
         vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__vpu_inst__DOT____Vcellout__vpu_lane__BRA__5__KET____DOT__leaky_relu_unit_inst__leaky_valid_out = 0U;
-        vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__vpu_inst__DOT____Vcellout__vpu_lane__BRA__4__KET____DOT__leaky_relu_unit_inst__leaky_valid_out = 0U;
-        vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__vpu_inst__DOT____Vcellout__vpu_lane__BRA__3__KET____DOT__leaky_relu_unit_inst__leaky_valid_out = 0U;
-        vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__vpu_inst__DOT____Vcellout__vpu_lane__BRA__2__KET____DOT__leaky_relu_unit_inst__leaky_valid_out = 0U;
-        vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__vpu_inst__DOT____Vcellout__vpu_lane__BRA__1__KET____DOT__leaky_relu_unit_inst__leaky_valid_out = 0U;
-        vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__vpu_inst__DOT____Vcellout__vpu_lane__BRA__0__KET____DOT__leaky_relu_unit_inst__leaky_valid_out = 0U;
-        vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT____Vcellout__gradient_descent_gen__BRA__7__KET____DOT__gradient_descent_inst__grad_descent_done_out = 0U;
         vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__vpu_inst__DOT__vpu_lane__BRA__7__KET____DOT__bias_unit_inst__DOT__overflow_out = 0U;
         vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__vpu_inst__DOT__vpu_lane__BRA__6__KET____DOT__bias_unit_inst__DOT__overflow_out = 0U;
         vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__vpu_inst__DOT__vpu_lane__BRA__5__KET____DOT__bias_unit_inst__DOT__overflow_out = 0U;
@@ -3393,12 +3387,12 @@ VL_INLINE_OPT void Vsim_top___024root___nba_sequent__TOP__12(Vsim_top___024root*
         vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_wr_addr_start_in = 0U;
         vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_wr_addr_in = 0U;
         vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__vpu_mode = 0U;
-        vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_wr_host_addr_in_1 = 0U;
-        vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_wr_host_data_in_1 = 0U;
         vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_wr_host_addr_in_0 = 0U;
         vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_wr_host_data_in_0 = 0U;
         vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_wr_host_valid_in_0 = 0U;
         vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_wr_host_valid_in_1 = 0U;
+        vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_wr_host_addr_in_1 = 0U;
+        vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_wr_host_data_in_1 = 0U;
         vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__grad_bias_or_weight = 0U;
         vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__rd_weight_transpose = 0U;
         vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__rd_input_transpose = 0U;
@@ -3439,6 +3433,12 @@ VL_INLINE_OPT void Vsim_top___024root___nba_sequent__TOP__12(Vsim_top___024root*
         vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_rd_input_col_size_out = 0U;
         vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_grad_addr_start_in = 0U;
         vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_grad_addr_in = 0U;
+        vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__vpu_inst__DOT____Vcellout__vpu_lane__BRA__4__KET____DOT__leaky_relu_unit_inst__leaky_valid_out = 0U;
+        vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__vpu_inst__DOT____Vcellout__vpu_lane__BRA__3__KET____DOT__leaky_relu_unit_inst__leaky_valid_out = 0U;
+        vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__vpu_inst__DOT____Vcellout__vpu_lane__BRA__2__KET____DOT__leaky_relu_unit_inst__leaky_valid_out = 0U;
+        vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__vpu_inst__DOT____Vcellout__vpu_lane__BRA__1__KET____DOT__leaky_relu_unit_inst__leaky_valid_out = 0U;
+        vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__vpu_inst__DOT____Vcellout__vpu_lane__BRA__0__KET____DOT__leaky_relu_unit_inst__leaky_valid_out = 0U;
+        vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT____Vcellout__gradient_descent_gen__BRA__7__KET____DOT__gradient_descent_inst__grad_descent_done_out = 0U;
         vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT____Vcellout__gradient_descent_gen__BRA__6__KET____DOT__gradient_descent_inst__grad_descent_done_out = 0U;
         vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT____Vcellout__gradient_descent_gen__BRA__5__KET____DOT__gradient_descent_inst__grad_descent_done_out = 0U;
         vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT____Vcellout__gradient_descent_gen__BRA__4__KET____DOT__gradient_descent_inst__grad_descent_done_out = 0U;
@@ -4223,14 +4223,6 @@ VL_INLINE_OPT void Vsim_top___024root___nba_sequent__TOP__12(Vsim_top___024root*
         = vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT____Vcellout__gradient_descent_gen__BRA__1__KET____DOT__gradient_descent_inst__value_updated_out;
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__value_updated_out[0U] 
         = vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT____Vcellout__gradient_descent_gen__BRA__0__KET____DOT__gradient_descent_inst__value_updated_out;
-    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_wr_host_addr_in[1U] 
-        = vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_wr_host_addr_in_1;
-    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_wr_host_addr_in[1U] 
-        = vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_wr_host_addr_in_1;
-    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_wr_host_data_in[1U] 
-        = vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_wr_host_data_in_1;
-    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_wr_host_data_in[1U] 
-        = vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_wr_host_data_in_1;
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_wr_host_addr_in[0U] 
         = vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_wr_host_addr_in_0;
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_wr_host_addr_in[0U] 
@@ -4243,10 +4235,6 @@ VL_INLINE_OPT void Vsim_top___024root___nba_sequent__TOP__12(Vsim_top___024root*
         = vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_wr_host_valid_in_0;
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_wr_host_valid_in[0U] 
         = vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_wr_host_valid_in_0;
-    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_wr_host_valid_in[1U] 
-        = vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_wr_host_valid_in_1;
-    vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__ub_wr_host_valid_in[1U] 
-        = vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__ub_wr_host_valid_in_1;
     if ((1U & (~ (IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__grad_bias_or_weight)))) {
         vlSelf->sim_top__DOT__u_soc_top__DOT__u_tpu_axi_fetch_top__DOT__u_tpu_isa_confreg__DOT__u_tpu__DOT__ub_inst__DOT__unnamedblk9__DOT__lane = 0xffffffffU;
     }

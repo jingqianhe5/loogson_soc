@@ -35,13 +35,13 @@ PTR_WEIGHT = 1
 PTR_BIAS = 2
 
 # 下面这些是 TPU unified buffer 内部地址，不是 CPU 的 0x1c... 总线地址。
-# X_BASE       放 1x8 输入 tile。
+# X_BASE       放完整 1x64 输入，由 CPU/UART 在启动 TPU 前写入。
 # W_BASE       放 8x8 权重 tile。
 # B_BASE       放 1x8 bias tile。
 # SCRATCH_BASE 放当前 tile 计算得到的中间/输出结果。
 # ub内部空间划分
 X_BASE = 0
-W_BASE = 32
+W_BASE = 64
 B_BASE = 128
 SCRATCH_BASE = 256# 临时存放结果的地址 一共十个地址
 
@@ -246,9 +246,8 @@ def build_tpu_program(weights: list[list[int]], bias: list[int], sample: list[in
         for i, value in enumerate(w_tile):
             program.append(word_load(W_BASE + i, value))
 
-    def append_preload_weight(x_tile: list[int], w_tile: list[int]) -> None:
-        """预装下一 tile：输入放 UB，权重读入 PE 的 weight_in_buffer。"""
-        append_load_x(x_tile)
+    def append_preload_weight(w_tile: list[int]) -> None:
+        """预装下一 tile：权重读入 PE 的 weight_in_buffer。输入由 CPU 运行时写入 UB。"""
         append_load_w(w_tile)
         program.append(word_ub_read(PTR_WEIGHT, W_BASE, 8, 8, True, 0x0))
         program.append(word_wait(WAIT_CYCLES, WEIGHT_READY_WAIT))
@@ -275,7 +274,7 @@ def build_tpu_program(weights: list[list[int]], bias: list[int], sample: list[in
     #   2. 每个 tile 开始时 SWITCH，让 buffer 里的权重变成 active 权重。
     #   3. 当前 tile 发出 input 开始计算后，趁这段计算时间预装 next tile 的权重。
     #   4. 下一轮 SWITCH 时，next tile 的权重已经在 buffer 里，可以直接切换。
-    append_preload_weight(tiles[0][0], tiles[0][1])
+    append_preload_weight(tiles[0][1])
     for tile_index, (x_tile, w_tile, bias_tile) in enumerate(tiles):
         c_tile = tile_index // 8
         k_tile = tile_index % 8
@@ -297,13 +296,13 @@ def build_tpu_program(weights: list[list[int]], bias: list[int], sample: list[in
         program.append(word_set_wr(SCRATCH_BASE, False))
         # 输入 tile 是 1x8。
         # 最后一个 k_tile 使用 vpu_mode=0xC，表示输出这一轮完整结果。
-        program.append(word_ub_read(PTR_INPUT, X_BASE, 1, 8, False, 0xC if k_tile == 7 else 0x0))
+        program.append(word_ub_read(PTR_INPUT, X_BASE + k_tile * 8, 1, 8, False, 0xC if k_tile == 7 else 0x0))
 
         if tile_index + 1 < len(tiles):
             next_x_tile, next_w_tile, _ = tiles[tile_index + 1]
-            # 先等当前 input 从 X_BASE 被 UB 读走，再覆盖 X_BASE 准备下一 tile。
+            # 保留一点间隔，让当前 input read 发出后再预装下一组权重。
             append_wait_cycles(INPUT_DRAIN_WAIT)
-            append_preload_weight(next_x_tile, next_w_tile)
+            append_preload_weight(next_w_tile)
             # 补足当前 tile 的计算时间，保证下一次 SWITCH 不会早于当前结果产生。
             append_wait_cycles(PRELOAD_TAIL_WAIT)
         else:

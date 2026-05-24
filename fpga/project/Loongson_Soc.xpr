@@ -1709,6 +1709,7 @@
     <FileSet Name="tpu_cmd_async_fifo" Type="BlockSrcs" RelSrcDir="$PSRCDIR/tpu_cmd_async_fifo" RelGenDir="$PGENDIR/tpu_cmd_async_fifo">
       <File Path="$PSRCDIR/sources_1/ip/tpu_cmd_async_fifo/tpu_cmd_async_fifo.xci">
         <FileInfo>
+          <Attr Name="AutoDisabled" Val="1"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
@@ -1784,9 +1785,7 @@
     </Run>
     <Run Id="tpu_cmd_async_fifo_synth_1" Type="Ft3:Synth" SrcSet="tpu_cmd_async_fifo" Part="xc7a200tfbg676-1" ConstrsSet="tpu_cmd_async_fifo" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/tpu_cmd_async_fifo_synth_1" AutoRQSDir="$PSRCDIR/utils_1/imports/tpu_cmd_async_fifo_synth_1" ParallelReportGen="true">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2025">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2025"/>
         <Step Id="synth_design"/>
       </Strategy>
       <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2025"/>
@@ -1795,9 +1794,7 @@
     </Run>
     <Run Id="tpu_result_async_fifo_synth_1" Type="Ft3:Synth" SrcSet="tpu_result_async_fifo" Part="xc7a200tfbg676-1" ConstrsSet="tpu_result_async_fifo" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/tpu_result_async_fifo_synth_1" AutoRQSDir="$PSRCDIR/utils_1/imports/tpu_result_async_fifo_synth_1" ParallelReportGen="true">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2025">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2025"/>
         <Step Id="synth_design"/>
       </Strategy>
       <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2025"/>
@@ -1857,9 +1854,7 @@
     </Run>
     <Run Id="tpu_cmd_async_fifo_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-1" ConstrsSet="tpu_cmd_async_fifo" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="tpu_cmd_async_fifo_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/tpu_cmd_async_fifo_impl_1" AutoRQSDir="$PSRCDIR/utils_1/imports/tpu_cmd_async_fifo_impl_1" ParallelReportGen="true">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2025">
-          <Desc>Default settings for Implementation.</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2025"/>
         <Step Id="init_design"/>
         <Step Id="opt_design"/>
         <Step Id="power_opt_design"/>
@@ -1876,9 +1871,7 @@
     </Run>
     <Run Id="tpu_result_async_fifo_impl_1" Type="Ft2:EntireDesign" Part="xc7a200tfbg676-1" ConstrsSet="tpu_result_async_fifo" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="tpu_result_async_fifo_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/tpu_result_async_fifo_impl_1" AutoRQSDir="$PSRCDIR/utils_1/imports/tpu_result_async_fifo_impl_1" ParallelReportGen="true">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2025">
-          <Desc>Default settings for Implementation.</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2025"/>
         <Step Id="init_design"/>
         <Step Id="opt_design"/>
         <Step Id="power_opt_design"/>

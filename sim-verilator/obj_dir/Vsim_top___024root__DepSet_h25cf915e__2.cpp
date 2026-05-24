@@ -987,6 +987,8 @@ VL_INLINE_OPT void Vsim_top___024root___nba_sequent__TOP__7(Vsim_top___024root* 
             = (1U | (vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__dcache__DOT__request_buffer_tag 
                      << 1U));
     }
+    vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__reset 
+        = (1U & (~ (IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__cpu_resetn)));
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__dcache__DOT____Vcellinp__tagv_ram_way__BRA__0__KET____DOT__u__ena 
         = (1U & ((~ (IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__dcache__DOT__request_buffer_uncache_en)) 
                  | ((1U == (IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_core_top__DOT__dcache__DOT__main_state)) 
@@ -4030,10 +4032,15 @@ VL_INLINE_OPT void Vsim_top___024root___nba_sequent__TOP__13(Vsim_top___024root*
     }
 }
 
+extern const VlUnpacked<CData/*0:0*/, 2048> Vsim_top__ConstPool__TABLE_h10c88e1c_0;
+
 VL_INLINE_OPT void Vsim_top___024root___nba_sequent__TOP__17(Vsim_top___024root* vlSelf) {
     if (false && vlSelf) {}  // Prevent unused
     Vsim_top__Syms* const __restrict vlSymsp VL_ATTR_UNUSED = vlSelf->vlSymsp;
     VL_DEBUG_IF(VL_DBG_MSGF("+    Vsim_top___024root___nba_sequent__TOP__17\n"); );
+    // Init
+    SData/*10:0*/ __Vtableidx14;
+    __Vtableidx14 = 0;
     // Body
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_isp_top__DOT__u_video_to_axis_bridge__DOT__fifo_full 
         = vlSelf->__Vdly__sim_top__DOT__u_soc_top__DOT__u_isp_top__DOT__u_video_to_axis_bridge__DOT__fifo_full;
@@ -4140,6 +4147,28 @@ VL_INLINE_OPT void Vsim_top___024root___nba_sequent__TOP__17(Vsim_top___024root*
         vlSelf->sim_top__DOT__u_soc_top__DOT__u_isp_top__DOT__u_isp_core__DOT__u_filter__DOT__u_gaussian_filter__DOT__u_Matrix_Generate_5X5_8Bit__DOT__u4_sync_fifo__DOT__mem[vlSelf->__Vdlyvdim0__sim_top__DOT__u_soc_top__DOT__u_isp_top__DOT__u_isp_core__DOT__u_filter__DOT__u_gaussian_filter__DOT__u_Matrix_Generate_5X5_8Bit__DOT__u4_sync_fifo__DOT__mem__v0] 
             = vlSelf->__Vdlyvval__sim_top__DOT__u_soc_top__DOT__u_isp_top__DOT__u_isp_core__DOT__u_filter__DOT__u_gaussian_filter__DOT__u_Matrix_Generate_5X5_8Bit__DOT__u4_sync_fifo__DOT__mem__v0;
     }
+    __Vtableidx14 = (((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_axi_uart_controller__DOT__uart0__DOT__regs__DOT__msr_read) 
+                      << 0xaU) | (((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_axi_uart_controller__DOT__uart0__DOT__regs__DOT__ms_int_pnd) 
+                                   << 9U) | (((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_axi_uart_controller__DOT__uart0__DOT__regs__DOT__iir_read) 
+                                              << 8U) 
+                                             | (((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_axi_uart_controller__DOT__uart0__DOT__regs__DOT__tf_push) 
+                                                 << 7U) 
+                                                | (((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_axi_uart_controller__DOT__uart0__DOT__regs__DOT__thre_int_pnd) 
+                                                    << 6U) 
+                                                   | (((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_axi_uart_controller__DOT__uart0__DOT__regs__DOT__fifo_read) 
+                                                       << 5U) 
+                                                      | (((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_axi_uart_controller__DOT__uart0__DOT__regs__DOT__ti_int_pnd) 
+                                                          << 4U) 
+                                                         | (((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_axi_uart_controller__DOT__uart0__DOT__regs__DOT__rda_int_pnd) 
+                                                             << 3U) 
+                                                            | (((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_axi_uart_controller__DOT__uart0__DOT__regs__DOT__lsr_mask) 
+                                                                << 2U) 
+                                                               | (((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_axi_uart_controller__DOT__uart0__DOT__regs__DOT__rls_int_pnd) 
+                                                                   << 1U) 
+                                                                  | (1U 
+                                                                     & (~ (IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__sys_resetn)))))))))))));
+    vlSelf->sim_top__DOT__u_soc_top__DOT__uart0_int 
+        = Vsim_top__ConstPool__TABLE_h10c88e1c_0[__Vtableidx14];
     if (vlSelf->sim_top__DOT__u_soc_top__DOT__sys_resetn) {
         if (((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_confreg__DOT__w_enter) 
              & (0xf000U == (0xffffU & vlSelf->sim_top__DOT__u_soc_top__DOT__u_confreg__DOT__buf_addr)))) {
@@ -4226,6 +4255,33 @@ VL_INLINE_OPT void Vsim_top___024root___nba_sequent__TOP__17(Vsim_top___024root*
         vlSelf->sim_top__DOT__u_soc_top__DOT__u_isp_config_axil__DOT__wdata_reg = 0U;
         vlSelf->sim_top__DOT__u_soc_top__DOT__u_isp_config_axil__DOT__awaddr_reg = 0U;
     }
+    vlSelf->sim_top__DOT__u_soc_top__DOT__u_axi_uart_controller__DOT__uart0__DOT__regs__DOT__ms_int_pnd 
+        = vlSelf->__Vdly__sim_top__DOT__u_soc_top__DOT__u_axi_uart_controller__DOT__uart0__DOT__regs__DOT__ms_int_pnd;
+    vlSelf->sim_top__DOT__u_soc_top__DOT__u_axi_uart_controller__DOT__uart0__DOT__regs__DOT__thre_int_pnd 
+        = vlSelf->__Vdly__sim_top__DOT__u_soc_top__DOT__u_axi_uart_controller__DOT__uart0__DOT__regs__DOT__thre_int_pnd;
+    vlSelf->sim_top__DOT__u_soc_top__DOT__u_axi_uart_controller__DOT__uart0__DOT__regs__DOT__ti_int_pnd 
+        = vlSelf->__Vdly__sim_top__DOT__u_soc_top__DOT__u_axi_uart_controller__DOT__uart0__DOT__regs__DOT__ti_int_pnd;
+    vlSelf->sim_top__DOT__u_soc_top__DOT__u_axi_uart_controller__DOT__uart0__DOT__regs__DOT__rda_int_pnd 
+        = vlSelf->__Vdly__sim_top__DOT__u_soc_top__DOT__u_axi_uart_controller__DOT__uart0__DOT__regs__DOT__rda_int_pnd;
+    vlSelf->sim_top__DOT__u_soc_top__DOT__u_axi_uart_controller__DOT__uart0__DOT__regs__DOT__rls_int_pnd 
+        = vlSelf->__Vdly__sim_top__DOT__u_soc_top__DOT__u_axi_uart_controller__DOT__uart0__DOT__regs__DOT__rls_int_pnd;
+    vlSelf->sim_top__DOT__u_soc_top__DOT__u_axi_uart_controller__DOT__uart0__DOT__regs__DOT__iir_read 
+        = ((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_axi_uart_controller__DOT__uart0__DOT__re) 
+           & ((~ ((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_axi_uart_controller__DOT__uart0__DOT__regs__DOT__lcr) 
+                  >> 7U)) & (2U == (IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_axi_uart_controller__DOT__uart0__DOT____Vcellinp__regs__addr))));
+    vlSelf->sim_top__DOT__u_soc_top__DOT__u_axi_uart_controller__DOT__uart0__DOT__regs__DOT__fifo_read 
+        = ((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_axi_uart_controller__DOT__uart0__DOT__re) 
+           & (IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_axi_uart_controller__DOT__uart0__DOT__regs__DOT____VdfgTmp_hd44b3af7__0));
+    vlSelf->sim_top__DOT__u_soc_top__DOT__u_axi_uart_controller__DOT__uart0__DOT__regs__DOT__msr_read 
+        = ((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_axi_uart_controller__DOT__uart0__DOT__re) 
+           & ((~ ((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_axi_uart_controller__DOT__uart0__DOT__regs__DOT__lcr) 
+                  >> 7U)) & (6U == (IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_axi_uart_controller__DOT__uart0__DOT____Vcellinp__regs__addr))));
+    vlSelf->sim_top__DOT__u_soc_top__DOT__u_axi_uart_controller__DOT__uart0__DOT__regs__DOT__tf_push 
+        = ((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_axi_uart_controller__DOT__uart0__DOT__we) 
+           & (IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_axi_uart_controller__DOT__uart0__DOT__regs__DOT____VdfgTmp_hd44b3af7__0));
+    vlSelf->sim_top__DOT__u_soc_top__DOT__u_axi_uart_controller__DOT__uart0__DOT__regs__DOT__lsr_mask 
+        = ((~ (IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_axi_uart_controller__DOT__uart0__DOT__regs__DOT__lsr_mask_d)) 
+           & (IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_axi_uart_controller__DOT__uart0__DOT__regs__DOT__lsr_mask_condition));
     vlSelf->sim_top__DOT__u_soc_top__DOT__u_confreg__DOT__w_enter 
         = ((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__u_AXI_top__DOT__u_axi_crossbar__DOT__axi_crossbar_wr_inst__DOT__m_ifaces__BRA__4__KET____DOT__reg_inst__DOT__genblk2__DOT__m_axi_wvalid_reg) 
            & ((IData)(vlSelf->sim_top__DOT__u_soc_top__DOT__s4_axi_wready) 

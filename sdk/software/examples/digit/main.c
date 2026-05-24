@@ -3,6 +3,9 @@
 
 #include "confreg_time.h"
 
+static inline uint8_t inb(uintptr_t addr) { return *(volatile uint8_t *)addr; }
+static inline void outb(uintptr_t addr, uint8_t data) { *(volatile uint8_t *)addr = data; }
+
 // BSP 需要这些全局变量来完成串口和时钟参数初始化。
 unsigned long UART_BASE = 0xbf000000;
 unsigned long CONFREG_TIMER_BASE = 0xbf20f100;
@@ -11,6 +14,23 @@ unsigned long CORE_CLOCKS_PER_SEC = 33000000L;
 
 // TPU 指令流起始地址，和 rtl/soc_top.v 里的 TPU_INSN_START_PC 保持一致。
 #define TPU_START_PC 0x1C00B000u
+
+#define UART_RBR 0x0u
+#define UART_IER 0x1u
+#define UART_FCR 0x2u
+#define UART_LSR 0x5u
+
+#define UART_IER_RDA 0x01u
+#define UART_LSR_DR  0x01u
+#define UART_FCR_ENABLE 0x01u
+#define UART_FCR_RX_RESET 0x02u
+#define UART_FCR_TX_RESET 0x04u
+
+#define TPU_SAMPLE_WORD_LIMIT 64u
+#define TPU_INPUT_UB_BASE 0u
+static volatile uint8_t uart_rx_frame[TPU_SAMPLE_WORD_LIMIT];
+static volatile uint32_t uart_rx_count = 0;
+static volatile int uart_rx_done = 0;
 
 // LACC 自定义指令编码：
 // 这里把自定义指令直接写成机器码，避免依赖工具链是否认识 lacc 助记符。
@@ -26,6 +46,7 @@ unsigned long CORE_CLOCKS_PER_SEC = 33000000L;
 #define LACC_START_WORD  "0xC00000A4"
 #define LACC_STATUS_WORD "0xC0400004"
 #define LACC_READ_WORD   "0xC08000A4"
+#define LACC_UB_WRITE_WORD "0xC08098A4"
 #define LACC_CLEAR_WORD  "0xC0C00004"
 
 // status word 的低位标志位，来自 lacc_core.v 里的 status_word。
@@ -46,6 +67,55 @@ static void print_inference_time(unsigned long start_cycle, unsigned long end_cy
     printf("[tpu_digit] inference time          = %lu.%03lu ms\n",
            elapsed_us / 1000ul,
            elapsed_us % 1000ul);
+}
+
+static inline uint8_t uart_read_reg(uint32_t offset) {
+    return inb(UART_BASE + offset);
+}
+
+static void uart_rx_reset_state(void) {
+    uart_rx_count = 0;
+    uart_rx_done = 0;
+}
+
+static void uart_rx_enable_interrupts(void) {
+    outb(UART_BASE + UART_IER, 0x00);
+    outb(UART_BASE + UART_FCR, UART_FCR_ENABLE | UART_FCR_RX_RESET | UART_FCR_TX_RESET);
+    outb(UART_BASE + UART_IER, UART_IER_RDA);
+}
+
+static void uart_rx_disable_interrupts(void) {
+    outb(UART_BASE + UART_IER, 0x00);
+}
+
+static void uart_rx_store_byte(uint8_t byte) {
+    uint8_t pixel;
+
+    if (byte == '\r' || byte == '\n' || byte == ' ' || byte == '\t' || byte == ',') {
+        return;
+    }
+
+    if (byte == '0' || byte == '1') {
+        pixel = (uint8_t)(byte - '0');
+    } else if (byte == 0x00u || byte == 0x01u) {
+        pixel = byte;
+    } else {
+        return;
+    }
+
+    if (uart_rx_count < TPU_SAMPLE_WORD_LIMIT) {
+        uart_rx_frame[uart_rx_count++] = pixel;
+        if (uart_rx_count == TPU_SAMPLE_WORD_LIMIT) {
+            uart_rx_done = 1;
+        }
+    }
+}
+
+static inline uint16_t pixel_to_q8_8(uint8_t pixel) {
+    if (pixel <= 1u) {
+        return (uint16_t)pixel << 8;
+    }
+    return (uint16_t)(((uint32_t)pixel * 256u + 127u) / 255u);
 }
 
 // 触发 TPU 开始执行。
@@ -96,6 +166,28 @@ static inline uint32_t tpu_read_pair(uint32_t pair_index) {
     return value;
 }
 
+// 向 TPU unified buffer 写一个 16-bit 数据。
+// rj 放 UB 地址，rk 放数据；硬件侧会把命令排队送到 TPU 时钟域。
+static inline uint32_t tpu_ub_write(uint32_t ub_addr, uint32_t data) {
+    uint32_t status;
+    asm volatile (
+        "move $r5, %1\n\t"
+        "move $r6, %2\n\t"
+        ".word " LACC_UB_WRITE_WORD "\n\t"
+        "move %0, $r4\n\t"
+        : "=r"(status)
+        : "r"(ub_addr), "r"(data)
+        : "$r4", "$r5", "$r6", "memory"
+    );
+    return status;
+}
+
+static void tpu_load_uart_frame_to_ub(void) {
+    for (uint32_t i = 0; i < TPU_SAMPLE_WORD_LIMIT; i++) {
+        tpu_ub_write(TPU_INPUT_UB_BASE + i, pixel_to_q8_8(uart_rx_frame[i]));
+    }
+}
+
 // 清空 TPU/LACC 侧状态，避免上一次运行残留影响这次推理。
 static inline uint32_t tpu_clear(void) {
     uint32_t value;
@@ -108,6 +200,12 @@ static inline uint32_t tpu_clear(void) {
         : "$r4", "memory"
     );
     return value;
+}
+
+void HWI1_IntrHandler(void) {
+    while (uart_read_reg(UART_LSR) & UART_LSR_DR) {
+        uart_rx_store_byte(uart_read_reg(UART_RBR));
+    }
 }
 
 // 轮询等待 TPU 结束；超时则返回 1，硬件错误返回 -1。
@@ -131,66 +229,75 @@ static int wait_for_done(uint32_t timeout_cycles, uint32_t *status_out) {
 }
 
 int main(void) {
-    printf("[tpu_digit] opening...\n");
+    printf("[tpu_digit] opening JqTPU\n");
 
-    // 先清状态，再启动 TPU。这样连续复位/连续运行时不会读到旧的 done/error。
-    uint32_t status = tpu_clear();
-    printf("[tpu_digit] clear                   status  value= 0x%08x\n", status);
-
-    // 从发出 START 前开始计时，到 DONE 返回后结束计时。
-    // 这个时间包含 TPU 执行时间，也包含 CPU 轮询 STATUS 的等待开销。
-    const unsigned long infer_start_cycle = get_clock_count();
-
-    // TPU_START_PC 指向 SRAM 里已经烧进去的 TPU 专属指令流。
-    status = tpu_start(TPU_START_PC);
-    printf("[tpu_digit] tpu  start working!!!   status  value= 0x%08x\n", status);
-
-    // 等待 TPU 做完本轮推理。
-    int wait_rc = wait_for_done(5000000u, &status);
-    if (wait_rc != 0) {
-        printf("[tpu_digit] tpu wait failed,    status  value= 0x%08x\n", status);
-        return 1;
-    }
-    const unsigned long infer_end_cycle = get_clock_count();
-
-    printf("[tpu_digit] finish   all!!!         status = 0x%08x\n", status);
-    print_inference_time(infer_start_cycle, infer_end_cycle);
-    printf("[tpu_digit] forward  result :\n");
-
-    // 结果缓冲区一共 10 个 class，这里按 5 个 pair 读出来。
-    // 每次 READ 返回 32 bit：低 16 bit 是偶数 class，高 16 bit 是奇数 class。
-    int16_t logits[10];
-    for (int i = 0; i < 5; i++) {
-        const uint32_t pair = tpu_read_pair((uint32_t)i);
-        logits[i * 2 + 0] = (int16_t)(pair & 0xffffu);
-        logits[i * 2 + 1] = (int16_t)((pair >> 16) & 0xffffu);
-    }
-
-    // 找到 logit 最大的类别作为预测结果。
-    int best_idx = 0;
-    int16_t best_val = logits[0];
-    for (int i = 0; i < 10; i++) {
-        const int16_t raw = logits[i];
-        // raw 是 Q8.8 定点数；下面只把它打印成人容易看的小数格式。
-        const int magnitude = raw < 0 ? -(int)raw : (int)raw;
-        printf("  class %d: raw=%6d  q8.8=%d.%03d\n",
-               i,
-               (int)raw,
-               (int)(raw / 256),
-               (int)((magnitude % 256) * 1000 / 256));
-        if (raw > best_val) {
-            best_val = raw;
-            best_idx = i;
-        }
-    }
-    printf("-------------------------------------------\n");
-    printf("--------------------result-----------------\n");
-    printf("-------------------------------------------\n");
-    printf("[tpu_digit] prediction = %d\n", best_idx);
-    printf("[tpu_digit] best raw   = %d\n", (int)best_val);
-
-    // 推理结果保持在这里，方便仿真/上板时观察串口最后的输出。
     while (1) {
+        uart_rx_reset_state();
+        uart_rx_enable_interrupts();
+        printf("[tpu_digit] waiting for 64 uart pixels...\n");
+        while (!uart_rx_done) {
+        }
+        uart_rx_disable_interrupts();
+        printf("[tpu_digit] uart frame received\n");
+
+        // 先清状态，再启动 TPU。这样连续复位/连续运行时不会读到旧的 done/error。
+        uint32_t status = tpu_clear();
+        printf("[tpu_digit] clear                   status  value= 0x%08x\n", status);
+
+        tpu_load_uart_frame_to_ub();
+        printf("[tpu_digit] uart frame loaded to UB\n");
+
+        // 从发出 START 前开始计时，到 DONE 返回后结束计时。
+        // 这个时间包含 TPU 执行时间，也包含 CPU 轮询 STATUS 的等待开销。
+        const unsigned long infer_start_cycle = get_clock_count();
+
+        // TPU_START_PC 指向 SRAM 里已经烧进去的 TPU 专属指令流。
+        status = tpu_start(TPU_START_PC);
+        printf("[tpu_digit] tpu  start working!!!   status  value= 0x%08x\n", status);
+
+        // 等待 TPU 做完本轮推理。
+        int wait_rc = wait_for_done(5000000u, &status);
+        if (wait_rc != 0) {
+            printf("[tpu_digit] tpu wait failed,    status  value= 0x%08x\n", status);
+            continue;
+        }
+        const unsigned long infer_end_cycle = get_clock_count();
+
+        printf("[tpu_digit] finish   all!!!         status = 0x%08x\n", status);
+        print_inference_time(infer_start_cycle, infer_end_cycle);
+        printf("[tpu_digit] forward  result :\n");
+
+        // 结果缓冲区一共 10 个 class，这里按 5 个 pair 读出来。
+        // 每次 READ 返回 32 bit：低 16 bit 是偶数 class，高 16 bit 是奇数 class。
+        int16_t logits[10];
+        for (int i = 0; i < 5; i++) {
+            const uint32_t pair = tpu_read_pair((uint32_t)i);
+            logits[i * 2 + 0] = (int16_t)(pair & 0xffffu);
+            logits[i * 2 + 1] = (int16_t)((pair >> 16) & 0xffffu);
+        }
+
+        // 找到 logit 最大的类别作为预测结果。
+        int best_idx = 0;
+        int16_t best_val = logits[0];
+        for (int i = 0; i < 10; i++) {
+            const int16_t raw = logits[i];
+            // raw 是 Q8.8 定点数；下面只把它打印成人容易看的小数格式。
+            const int magnitude = raw < 0 ? -(int)raw : (int)raw;
+            printf("  class %d: raw=%6d  q8.8=%d.%03d\n",
+                   i,
+                   (int)raw,
+                   (int)(raw / 256),
+                   (int)((magnitude % 256) * 1000 / 256));
+            if (raw > best_val) {
+                best_val = raw;
+                best_idx = i;
+            }
+        }
+        printf("-------------------------------------------\n");
+        printf("--------------------result-----------------\n");
+        printf("-------------------------------------------\n");
+        printf("[tpu_digit] prediction = %d\n", best_idx);
+        printf("[tpu_digit] best raw   = %d\n", (int)best_val);
     }
 
     return 0;
